@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node tools/build-static.mjs",
-    "check": "node --check src/app.js && node --check src/digit-model.js && node --check src/game-core.js && node --check src/i18n.js && node --check src/ink-recognizer.js && node --check sw.js && node test/game-core.test.js && node test/i18n.test.js && node test/digit-model.test.js",
+    "check": "node --check src/app.js && node --check src/digit-model.js && node --check src/game-core.js && node --check src/i18n.js && node --check src/ink-recognizer.js && node --check sw.js && node test/game-core.test.js && node test/i18n.test.js && node test/digit-model.test.js && node test/ink-recognizer.test.js",
     "benchmark": "node tools/benchmark-digit-model.mjs",
     "start": "python3 -m http.server 4173"
   }

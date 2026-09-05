@@ -1,12 +1,13 @@
 const CACHE_PREFIX = "dr-stoeter-gehirnjogging-";
-const CACHE_NAME = `${CACHE_PREFIX}v3`;
+const CACHE_NAME = `${CACHE_PREFIX}v7`;
 const APP_ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./manifest.webmanifest",
   "./public/icon.svg",
-  "./public/model/digits.bin",
+  "./public/model/digits-cnn.bin",
+  "./public/model/MNIST-CNN-LICENSE.txt",
   "./src/app.js",
   "./src/digit-model.js",
   "./src/game-core.js",

@@ -37,24 +37,24 @@ References: the [official Nintendo DS manual](https://www.nintendo.com/eu/media/
 
 ## Handwriting model
 
-Recognition stays entirely on the device. `public/model/digits.bin` is a **49.9 KiB int8-quantized neural network** with this architecture:
+Recognition stays entirely on the device. `public/model/digits-cnn.bin` is a **6.1 KiB int8-quantized convolutional neural network** converted from the ONNX Model Zoo MNIST model:
 
 ```text
-28 × 28 grayscale input → 64 ReLU units → 10 digit probabilities
+28 × 28 input → 8-channel convolution → max pool → 16-channel convolution → max pool → 10 digits
 ```
 
-The model was trained on MNIST and reaches 97.0% on the MNIST test set. The runtime is handwritten in browser-native JavaScript with typed arrays, so there is no TensorFlow or other ML runtime to download. The binary is preloaded while the page opens, and inference avoids per-digit allocations. The pad never recognizes while the player is writing: pressing **Submit answer** segments the finished ink on a tiny mask and classifies one or two digits.
+The source model reports 98.9% accuracy on the MNIST test set. The runtime is handwritten in browser-native JavaScript with typed arrays, so there is no TensorFlow, ONNX Runtime, or other ML runtime to download. The binary is preloaded while the page opens, and inference reuses its working buffers. The pad never recognizes while the player is writing: pressing **Submit answer** evaluates several low-resolution split candidates and classifies one or two digits. For two-digit answers it combines blank-space and low-ink valleys with the order and geometry of the user's strokes, including whole-stroke grouping when digits touch or overlap.
 
-The little-endian binary starts with the 8-byte magic `DGMLP001`, three uint32 dimensions, test accuracy and two float32 quantization scales. It is followed by int8 first-layer weights, float32 first-layer biases, int8 second-layer weights, and float32 second-layer biases. Run `npm run benchmark` to measure inference on the current machine.
+The little-endian binary starts with the 8-byte magic `DGCNN001`, test accuracy, per-output-channel quantization scales, and the three layers' int8 weights and float32 biases. Run `npm run benchmark` to measure inference on the current machine. See [`public/model/MNIST-CNN-LICENSE.txt`](public/model/MNIST-CNN-LICENSE.txt) for source-model attribution.
 
-To retrain it, download the standard `mnist.npz` dataset and run:
+To reproduce the compact file, download `mnist-1.onnx` from the model card and run:
 
 ```bash
-/path/to/python-with-numpy tools/train_digit_model.py mnist.npz public/model/digits.bin
+uv run --with onnx python tools/convert_onnx_cnn.py mnist-1.onnx public/model/digits-cnn.bin
 ```
 
-MNIST is available under CC BY-SA 3.0. The binary header records the model dimensions, quantization scales, and measured test accuracy.
+The source-model license and attribution are bundled with the weights.
 
 ## iOS path
 
-The game rules, preprocessing pipeline, and compact dense-network weights are framework-independent. A later iOS version can read the same documented binary weights directly in Swift or convert the two dense layers to Core ML. The PWA can already be added to the iPad or iPhone Home Screen for a standalone full-screen experience.
+The game rules, preprocessing pipeline, and compact CNN weights are framework-independent. A later iOS version can read the same documented weights directly in Swift, convert the layers to Core ML, or use a native online-handwriting recognizer. The PWA can already be added to the iPad or iPhone Home Screen for a standalone full-screen experience.

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 
 import { DigitModel } from "../src/digit-model.js";
 
-const bytes = await readFile(new URL("../public/model/digits.bin", import.meta.url));
+const bytes = await readFile(new URL("../public/model/digits-cnn.bin", import.meta.url));
 const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 const model = DigitModel.fromBuffer(buffer);
 const samples = Array.from({ length: 32 }, (_, sample) => {

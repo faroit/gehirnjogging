@@ -296,7 +296,7 @@ async function initialise() {
   bindUi();
   updateBestLabel();
   try {
-    const model = await DigitModel.load("./public/model/digits.bin");
+    const model = await DigitModel.load("./public/model/digits-cnn.bin");
     recognizer = new InkRecognizer({
       canvas: elements["ink-canvas"],
       guide: elements["canvas-guide"],

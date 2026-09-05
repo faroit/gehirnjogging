@@ -3,14 +3,14 @@ import { readFile } from "node:fs/promises";
 
 import { DigitModel } from "../src/digit-model.js";
 
-const bytes = await readFile(new URL("../public/model/digits.bin", import.meta.url));
+const bytes = await readFile(new URL("../public/model/digits-cnn.bin", import.meta.url));
 const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 const model = DigitModel.fromBuffer(buffer);
 
 assert.equal(model.inputSize, 784);
-assert.equal(model.hiddenSize, 64);
 assert.equal(model.outputSize, 10);
-assert.ok(model.testAccuracy > 0.97);
+assert.equal(model.kind, "cnn");
+assert.ok(model.testAccuracy > 0.98);
 
 let seed = 20260905;
 for (let sample = 0; sample < 32; sample += 1) {

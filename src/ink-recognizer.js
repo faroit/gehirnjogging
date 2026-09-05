@@ -3,6 +3,70 @@ const MASK_HEIGHT = 96;
 const MODEL_SIZE = 28;
 const MODEL_INK_SIZE = 20;
 const INK_COLOR = "#14305c";
+const MAX_SPLIT_CANDIDATES = 10;
+
+function clamp(value, minimum, maximum) {
+  return Math.max(minimum, Math.min(maximum, value));
+}
+
+export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
+  if (maxX - minX < 4) return [];
+
+  const start = minX + Math.max(1, Math.floor((maxX - minX) * 0.12));
+  const end = maxX - Math.max(1, Math.floor((maxX - minX) * 0.12));
+  const peak = Math.max(1, ...columns.slice(minX, maxX + 1));
+  const candidates = new Map();
+
+  const add = (cut, bonus = 0) => {
+    const x = clamp(Math.round(cut), start, end);
+    const density = (
+      (columns[x - 1] || 0) + columns[x] * 2 + (columns[x + 1] || 0)
+    ) / (peak * 4);
+    const centreDistance = Math.abs(x - (minX + maxX) / 2) / (maxX - minX);
+    const prior = bonus - density * 0.8 - centreDistance * 0.08;
+    const previous = candidates.get(x);
+    if (previous === undefined || prior > previous) candidates.set(x, prior);
+  };
+
+  // Blank runs are ideal, but use their centre rather than an arbitrary edge.
+  let blankStart = -1;
+  for (let x = start; x <= end + 1; x += 1) {
+    const blank = x <= end && columns[x] === 0;
+    if (blank && blankStart < 0) blankStart = x;
+    if (!blank && blankStart >= 0) {
+      const blankEnd = x - 1;
+      add((blankStart + blankEnd) / 2, Math.min(0.28, (blankEnd - blankStart + 1) * 0.025));
+      blankStart = -1;
+    }
+  }
+
+  // Stroke order supplies boundaries even when adjacent digits touch.
+  for (const strokeCut of strokeCuts) {
+    const cut = typeof strokeCut === "number" ? strokeCut : strokeCut.cut;
+    const bonus = typeof strokeCut === "number" ? 0.32 : strokeCut.bonus;
+    add(cut, bonus);
+  }
+
+  // Low-ink valleys cover touching digits whose separator is not fully blank.
+  for (let x = start; x <= end; x += 1) {
+    const density = (columns[x - 1] || 0) + columns[x] * 2 + (columns[x + 1] || 0);
+    const before = (columns[x - 2] || 0) + (columns[x - 1] || 0) * 2 + columns[x];
+    const after = columns[x] + (columns[x + 1] || 0) * 2 + (columns[x + 2] || 0);
+    if (density <= before && density <= after) add(x);
+  }
+  add((minX + maxX) / 2, -0.08);
+
+  const ranked = [...candidates.entries()]
+    .map(([cut, prior]) => ({ cut, prior }))
+    .sort((a, b) => b.prior - a.prior);
+  const selected = [];
+  for (const candidate of ranked) {
+    if (selected.some((item) => Math.abs(item.cut - candidate.cut) < 3)) continue;
+    selected.push(candidate);
+    if (selected.length === MAX_SPLIT_CANDIDATES) break;
+  }
+  return selected;
+}
 
 function makeCanvas(width, height) {
   const canvas = typeof OffscreenCanvas === "function"
@@ -267,23 +331,14 @@ export class InkRecognizer {
 
   read() {
     if (!this.enabled || this.strokes.length === 0) return;
-    const segments = this.findExpectedSegments();
-    if (segments.length < this.expectedDigits) {
+    const result = this.expectedDigits === 2
+      ? this.recogniseTwoDigits()
+      : this.recogniseSegments(this.findExpectedSegments());
+    if (!result) {
       this.onState("unsure", this.expectedDigits === 2 ? "recognition.onlyOne" : "recognition.keepWriting");
       return;
     }
-
-    let digits = "";
-    let confidence = 1;
-    let margin = 1;
-    for (const bounds of segments) {
-      const input = this.normalise(bounds);
-      const prediction = this.model.predict(input);
-      digits += prediction.digit;
-      confidence = Math.min(confidence, prediction.confidence);
-      margin = Math.min(margin, prediction.margin);
-    }
-    const value = Number(digits);
+    const { value, confidence, margin } = result;
 
     // A low-confidence scribble should never cost the player five seconds.
     if (!Number.isFinite(confidence) || !Number.isFinite(margin) || confidence < 0.44 || margin < 0.08) {
@@ -298,12 +353,38 @@ export class InkRecognizer {
     this.onRead(value);
   }
 
-  findExpectedSegments() {
-    if (this.expectedDigits === 1) {
-      const bounds = this.boundsFromInk();
-      return bounds ? [bounds] : [];
+  recogniseSegments(segments) {
+    if (segments.length < this.expectedDigits) return null;
+    let digits = "";
+    let confidence = 1;
+    let margin = 1;
+    let score = 0;
+    for (const segment of segments) {
+      const prediction = this.model.predict(this.normalise(segment));
+      digits += prediction.digit;
+      confidence = Math.min(confidence, prediction.confidence);
+      margin = Math.min(margin, prediction.margin);
+      score += Math.log(Math.max(prediction.confidence, 0.0001)) + prediction.margin * 0.65;
     }
-    return this.findTwoDigitSegments();
+    return { value: Number(digits), confidence, margin, score, digits };
+  }
+
+  recogniseTwoDigits() {
+    const candidates = this.findTwoDigitCandidates();
+    let best = null;
+    for (const candidate of candidates) {
+      const result = this.recogniseSegments(candidate.segments);
+      if (!result) continue;
+      // Arithmetic answers never have a leading zero, so reject that otherwise-attractive split.
+      const score = result.score + candidate.prior + (result.digits[0] === "0" ? -2 : 0);
+      if (!best || score > best.score) best = { ...result, score };
+    }
+    return best;
+  }
+
+  findExpectedSegments() {
+    const bounds = this.boundsFromInk();
+    return bounds ? [bounds] : [];
   }
 
   boundsFromInk() {
@@ -318,7 +399,7 @@ export class InkRecognizer {
     return { x: left, y: top, width: right - left, height: bottom - top };
   }
 
-  findTwoDigitSegments() {
+  findTwoDigitCandidates() {
     const pixels = this.maskContext.getImageData(0, 0, MASK_WIDTH, MASK_HEIGHT).data;
     const columns = this.maskColumns;
     const tops = this.maskTop;
@@ -341,50 +422,130 @@ export class InkRecognizer {
     }
     if (maxX < minX) return [];
 
-    const runs = [];
-    let runStart = -1;
-    for (let x = minX; x <= maxX + 1; x += 1) {
-      const occupied = x <= maxX && columns[x] > 0;
-      if (occupied && runStart < 0) runStart = x;
-      if (!occupied && runStart >= 0) {
-        runs.push({ start: runStart, end: x - 1 });
-        runStart = -1;
-      }
-    }
-    if (runs.length < 2) return [];
-
-    let split = 0;
-    let largestGap = -1;
-    for (let i = 0; i < runs.length - 1; i += 1) {
-      const gap = runs[i + 1].start - runs[i].end - 1;
-      if (gap > largestGap) {
-        largestGap = gap;
-        split = i;
-      }
-    }
-
-    const horizontalSegments = [
-      { start: runs[0].start, end: runs[split].end },
-      { start: runs[split + 1].start, end: runs[runs.length - 1].end },
-    ];
-    return horizontalSegments.map((segment) => {
-      let top = MASK_HEIGHT;
-      let bottom = -1;
-      for (let x = segment.start; x <= segment.end; x += 1) {
-        if (columns[x] === 0) continue;
-        top = Math.min(top, tops[x]);
-        bottom = Math.max(bottom, bottoms[x]);
-      }
-      return {
-        x: segment.start / MASK_WIDTH * this.canvas.width,
-        y: top / MASK_HEIGHT * this.canvas.height,
-        width: (segment.end - segment.start + 1) / MASK_WIDTH * this.canvas.width,
-        height: (bottom - top + 1) / MASK_HEIGHT * this.canvas.height,
-      };
-    }).filter((bounds) => bounds.width > 2 && bounds.height > 2);
+    const strokeCuts = this.findStrokeCuts(minX, maxX);
+    const splitCandidates = findSplitCandidates(columns, minX, maxX, strokeCuts);
+    const pixelCandidates = splitCandidates.map(({ cut, prior }) => ({
+      prior,
+      segments: [
+        this.boundsForMaskRange(minX, cut - 1, columns, tops, bottoms),
+        this.boundsForMaskRange(cut, maxX, columns, tops, bottoms),
+      ].filter(Boolean),
+    })).filter((candidate) => candidate.segments.length === 2);
+    return [...this.findStrokeGroupCandidates(), ...pixelCandidates];
   }
 
-  normalise(bounds) {
+  findStrokeGroupCandidates() {
+    if (this.strokes.length < 2) return [];
+    const candidates = [];
+    for (let partition = 1; partition < this.strokes.length; partition += 1) {
+      const left = this.boundsFromStrokeRange(0, partition);
+      const right = this.boundsFromStrokeRange(partition, this.strokes.length);
+      if (!left || !right) continue;
+      const leftCentre = left.x + left.width / 2;
+      const rightCentre = right.x + right.width / 2;
+      if (leftCentre >= rightCentre) continue;
+      const separation = (rightCentre - leftCentre) / Math.max(1, this.canvas.width);
+      const overlap = Math.max(0, left.x + left.width - right.x) / Math.max(1, Math.min(left.width, right.width));
+      candidates.push({
+        prior: 0.18 + Math.min(0.32, separation * 0.9) - Math.min(0.18, overlap * 0.15),
+        segments: [
+          { bounds: left, strokeStart: 0, strokeEnd: partition },
+          { bounds: right, strokeStart: partition, strokeEnd: this.strokes.length },
+        ],
+      });
+    }
+    return candidates;
+  }
+
+  boundsFromStrokeRange(start, end) {
+    let minX = 1;
+    let maxX = 0;
+    let minY = 1;
+    let maxY = 0;
+    for (let index = start; index < end; index += 1) {
+      for (const point of this.strokes[index]) {
+        minX = Math.min(minX, point.x);
+        maxX = Math.max(maxX, point.x);
+        minY = Math.min(minY, point.y);
+        maxY = Math.max(maxY, point.y);
+      }
+    }
+    if (maxX < minX || maxY < minY) return null;
+    const halfStroke = this.visibleLineWidth() / 2;
+    const left = Math.max(0, minX * this.canvas.width - halfStroke);
+    const right = Math.min(this.canvas.width, maxX * this.canvas.width + halfStroke);
+    const top = Math.max(0, minY * this.canvas.height - halfStroke);
+    const bottom = Math.min(this.canvas.height, maxY * this.canvas.height + halfStroke);
+    if (right - left < 3 || bottom - top < 3) return null;
+    return { x: left, y: top, width: right - left, height: bottom - top };
+  }
+
+  findStrokeCuts(minX, maxX) {
+    if (this.strokes.length < 2) return [];
+    const ranges = this.strokes.map((stroke) => {
+      let start = MASK_WIDTH;
+      let end = -1;
+      for (const point of stroke) {
+        const x = clamp(Math.round(point.x * (MASK_WIDTH - 1)), 0, MASK_WIDTH - 1);
+        start = Math.min(start, x);
+        end = Math.max(end, x);
+      }
+      return { start, end };
+    });
+    const cuts = [];
+    for (let partition = 1; partition < ranges.length; partition += 1) {
+      let leftStart = MASK_WIDTH;
+      let leftEnd = -1;
+      let rightStart = MASK_WIDTH;
+      let rightEnd = -1;
+      for (let i = 0; i < partition; i += 1) {
+        leftStart = Math.min(leftStart, ranges[i].start);
+        leftEnd = Math.max(leftEnd, ranges[i].end);
+      }
+      for (let i = partition; i < ranges.length; i += 1) {
+        rightStart = Math.min(rightStart, ranges[i].start);
+        rightEnd = Math.max(rightEnd, ranges[i].end);
+      }
+      const leftCentre = (leftStart + leftEnd) / 2;
+      const rightCentre = (rightStart + rightEnd) / 2;
+      if (leftCentre >= rightCentre) continue;
+      const cut = leftEnd < rightStart
+        ? (leftEnd + rightStart + 1) / 2
+        : (leftCentre + rightCentre) / 2;
+      const separation = (rightCentre - leftCentre) / Math.max(1, maxX - minX);
+      const bonus = leftEnd < rightStart
+        ? 0.38
+        : clamp(separation * 0.28, 0.08, 0.2);
+      if (cut > minX && cut <= maxX) cuts.push({ cut, bonus });
+    }
+    return cuts;
+  }
+
+  boundsForMaskRange(start, end, columns, tops, bottoms) {
+    while (start <= end && columns[start] === 0) start += 1;
+    while (end >= start && columns[end] === 0) end -= 1;
+    if (end < start) return null;
+    let top = MASK_HEIGHT;
+    let bottom = -1;
+    for (let x = start; x <= end; x += 1) {
+      if (columns[x] === 0) continue;
+      top = Math.min(top, tops[x]);
+      bottom = Math.max(bottom, bottoms[x]);
+    }
+    if (bottom < top) return null;
+    const bounds = {
+      x: start / MASK_WIDTH * this.canvas.width,
+      y: top / MASK_HEIGHT * this.canvas.height,
+      width: (end - start + 1) / MASK_WIDTH * this.canvas.width,
+      height: (bottom - top + 1) / MASK_HEIGHT * this.canvas.height,
+    };
+    return bounds.width > 2 && bounds.height > 2 ? bounds : null;
+  }
+
+  normalise(segment) {
+    const bounds = segment.bounds || segment;
+    const strokeStart = segment.strokeStart ?? 0;
+    const strokeEnd = segment.strokeEnd ?? this.strokes.length;
     const context = this.scratchContext;
     context.clearRect(0, 0, MODEL_SIZE, MODEL_SIZE);
     const scale = MODEL_INK_SIZE / Math.max(bounds.width, bounds.height);
@@ -399,7 +560,8 @@ export class InkRecognizer {
     context.rect((MODEL_SIZE - drawWidth) / 2, (MODEL_SIZE - drawHeight) / 2, drawWidth, drawHeight);
     context.clip();
 
-    for (const stroke of this.strokes) {
+    for (let strokeIndex = strokeStart; strokeIndex < strokeEnd; strokeIndex += 1) {
+      const stroke = this.strokes[strokeIndex];
       if (stroke.length === 1) {
         context.beginPath();
         context.arc(
