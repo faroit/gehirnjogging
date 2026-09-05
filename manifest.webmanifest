@@ -1,0 +1,13 @@
+{
+  "name": "Dr. Stöter's Gehirnjogging",
+  "short_name": "Gehirnjogging",
+  "description": "A private, offline-first 20-question arithmetic sprint with on-device handwriting recognition.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3ebdd",
+  "theme_color": "#4d70ff",
+  "orientation": "any",
+  "icons": [
+    { "src": "./public/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
