@@ -644,8 +644,8 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 
 .score-block {
   display: grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap: 30px;
+  grid-template-columns: 1fr;
+  gap: 22px;
   align-items: end;
   margin-top: 45px;
   padding: 26px 0;
@@ -653,11 +653,30 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
   border-bottom: 1px solid var(--line);
 }
 
-.score-block span { color: var(--ink-soft); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.score-block__main > span,
+.score-breakdown span { color: var(--ink-soft); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .score-block__main { display: grid; gap: 6px; }
-.score-block__main strong { color: var(--blue); font-family: "Cooper Black", ui-rounded, sans-serif; font-size: clamp(44px, 5vw, 70px); line-height: 1; }
-.score-block__main small { font-size: 22px; font-weight: 400; }
-.score-breakdown { display: grid; gap: 12px; }
+.score-block__main strong {
+  color: var(--blue);
+  font-family: "Cooper Black", ui-rounded, sans-serif;
+  font-size: clamp(76px, 8vw, 118px);
+  letter-spacing: -.045em;
+  line-height: .92;
+  white-space: nowrap;
+}
+.score-block__main small {
+  margin-left: .12em;
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-weight: 400;
+  letter-spacing: -.02em;
+}
+.score-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
 .score-breakdown div { display: flex; justify-content: space-between; gap: 20px; }
 .score-breakdown strong { font-size: 13px; }
 
@@ -747,7 +766,8 @@ footer {
   .button--submit { flex: 1; }
   #keyboard-button { font-size: 0; gap: 0; }
   #keyboard-button svg { width: 18px; }
-  .score-block { grid-template-columns: 1fr; gap: 22px; }
+  .score-block__main strong { font-size: clamp(68px, 20vw, 92px); }
+  .score-breakdown { grid-template-columns: 1fr; }
   .results-actions { align-items: stretch; flex-direction: column; }
   .results-actions .button { width: 100%; }
   footer span:first-child { display: none; }
