@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Train and export the tiny, dependency-light digit recognizer used by Dr. Stöter's Gehirnjogging.
 
-The exported model is an int8-quantized 784 -> 48 -> 10 MLP. It is deliberately
+The exported model is an int8-quantized 784 -> 64 -> 10 MLP. It is deliberately
 small enough to ship with the web app and simple enough to run with a few loops
 and typed arrays in any browser (and, later, in a native iOS target).
 """
@@ -9,8 +9,7 @@ and typed arrays in any browser (and, later, in a native iOS target).
 from __future__ import annotations
 
 import argparse
-import base64
-import json
+import struct
 from pathlib import Path
 
 import numpy as np
@@ -22,21 +21,16 @@ def one_hot(labels: np.ndarray, classes: int = 10) -> np.ndarray:
     return encoded
 
 
-def quantize(values: np.ndarray) -> tuple[str, float]:
+def quantize(values: np.ndarray) -> tuple[np.ndarray, float]:
     scale = float(np.max(np.abs(values)) / 127.0) or 1.0
     packed = np.clip(np.round(values / scale), -127, 127).astype(np.int8)
-    return base64.b64encode(packed.tobytes()).decode("ascii"), scale
-
-
-def encode_float32(values: np.ndarray) -> str:
-    packed = np.asarray(values, dtype="<f4")
-    return base64.b64encode(packed.tobytes()).decode("ascii")
+    return packed, scale
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", type=Path, help="Path to keras-compatible mnist.npz")
-    parser.add_argument("output", type=Path, help="Destination JSON model")
+    parser.add_argument("output", type=Path, help="Destination binary model")
     parser.add_argument("--epochs", type=int, default=14)
     args = parser.parse_args()
 
@@ -101,20 +95,27 @@ def main() -> None:
 
     w1_data, w1_scale = quantize(w1)
     w2_data, w2_scale = quantize(w2)
-    payload = {
-        "format": "twenty-mlp-int8-v1",
-        "license": "MNIST dataset: CC BY-SA 3.0",
-        "input": 784,
-        "hidden": hidden,
-        "output": 10,
-        "testAccuracy": round(accuracy, 6),
-        "layers": [
-            {"shape": [784, hidden], "scale": w1_scale, "weights": w1_data, "bias": encode_float32(b1)},
-            {"shape": [hidden, 10], "scale": w2_scale, "weights": w2_data, "bias": encode_float32(b2)},
-        ],
-    }
+    header = struct.pack(
+        "<8sIIIfff",
+        b"DGMLP001",
+        784,
+        hidden,
+        10,
+        round(accuracy, 6),
+        w1_scale,
+        w2_scale,
+    )
+    payload = b"".join(
+        [
+            header,
+            w1_data.tobytes(order="C"),
+            np.asarray(b1, dtype="<f4").tobytes(),
+            w2_data.tobytes(order="C"),
+            np.asarray(b2, dtype="<f4").tobytes(),
+        ]
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+    args.output.write_bytes(payload)
     print(f"wrote {args.output} ({args.output.stat().st_size / 1024:.1f} KiB)")
 
 

@@ -481,7 +481,6 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
   transform: rotate(-12deg) scale(.6);
 }
 
-.feedback-mark.is-visible { animation: mark 480ms cubic-bezier(.18,.8,.3,1); }
 .feedback-mark.is-wrong { color: var(--coral); }
 
 .progress-track {
@@ -495,12 +494,15 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 
 .progress-track span {
   display: block;
-  width: 0;
+  width: 100%;
   height: 100%;
   border-radius: inherit;
   background: var(--coral);
   box-shadow: inset 0 -2px 0 rgba(145, 24, 57, .18);
-  transition: width 240ms ease;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 240ms ease;
+  will-change: transform;
 }
 
 .problem-hint {
@@ -709,8 +711,6 @@ footer {
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 @keyframes breathe { 50% { transform: scale(.7); opacity: .55; } }
-@keyframes mark { 0% { opacity: 0; transform: rotate(-12deg) scale(.5); } 35%, 72% { opacity: .94; transform: rotate(-7deg) scale(1); } 100% { opacity: 0; transform: rotate(-3deg) scale(1.12); } }
-
 @media (max-width: 850px) {
   .app-shell { overflow: visible; }
   .screen--home { grid-template-columns: 1fr; gap: 40px; padding: 8vh 0 5vh; }

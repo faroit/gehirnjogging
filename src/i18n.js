@@ -20,7 +20,7 @@ const messages = {
     "home.start": "Start the sprint",
     "home.modelPreparing": "Preparing the on-device digit model",
     "home.howTitle": "How handwriting works",
-    "home.howBody": "Write one or two large digits, then tap Submit. A tiny 67 KB neural network reads your ink right here. Nothing is uploaded.",
+    "home.howBody": "Write one or two large digits, then tap Submit. A tiny 50 KB neural network reads your ink right here. Nothing is uploaded.",
     "rules.questions": "Questions",
     "rules.operations": "Operations",
     "rules.wrong": "Wrong answer",
@@ -99,7 +99,7 @@ const messages = {
     "home.start": "Sprint starten",
     "home.modelPreparing": "Ziffernmodell wird auf dem Gerät vorbereitet",
     "home.howTitle": "So funktioniert die Handschrift",
-    "home.howBody": "Schreibe eine oder zwei große Ziffern und tippe dann auf Senden. Ein winziges neuronales Netz mit 67 KB liest deine Schrift direkt hier. Nichts wird hochgeladen.",
+    "home.howBody": "Schreibe eine oder zwei große Ziffern und tippe dann auf Senden. Ein winziges neuronales Netz mit 50 KB liest deine Schrift direkt hier. Nichts wird hochgeladen.",
     "rules.questions": "Aufgaben",
     "rules.operations": "Rechenarten",
     "rules.wrong": "Falsche Antwort",
@@ -178,7 +178,7 @@ const messages = {
     "home.start": "Lancer le sprint",
     "home.modelPreparing": "Préparation du modèle de chiffres sur l’appareil",
     "home.howTitle": "Comment fonctionne l’écriture",
-    "home.howBody": "Écris un ou deux grands chiffres, puis appuie sur Valider. Un minuscule réseau neuronal de 67 Ko lit ton écriture ici même. Rien n’est envoyé.",
+    "home.howBody": "Écris un ou deux grands chiffres, puis appuie sur Valider. Un minuscule réseau neuronal de 50 Ko lit ton écriture ici même. Rien n’est envoyé.",
     "rules.questions": "Calculs",
     "rules.operations": "Opérations",
     "rules.wrong": "Mauvaise réponse",
@@ -257,7 +257,7 @@ const messages = {
     "home.start": "Empezar el reto",
     "home.modelPreparing": "Preparando el modelo de cifras en el dispositivo",
     "home.howTitle": "Cómo funciona la escritura",
-    "home.howBody": "Escribe una o dos cifras grandes y pulsa Enviar. Una diminuta red neuronal de 67 KB lee tu escritura aquí mismo. No se sube nada.",
+    "home.howBody": "Escribe una o dos cifras grandes y pulsa Enviar. Una diminuta red neuronal de 50 KB lee tu escritura aquí mismo. No se sube nada.",
     "rules.questions": "Cálculos",
     "rules.operations": "Operaciones",
     "rules.wrong": "Respuesta incorrecta",
@@ -371,9 +371,18 @@ export function applyDocumentTranslations(locale, root = document) {
   }
 }
 
+const numberFormatters = new Map();
+
 export function formatDecimal(locale, value, precision = 1) {
-  return new Intl.NumberFormat(normaliseLocale(locale), {
-    minimumFractionDigits: precision,
-    maximumFractionDigits: precision,
-  }).format(value);
+  const language = normaliseLocale(locale);
+  const key = `${language}:${precision}`;
+  let formatter = numberFormatters.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(language, {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
+    });
+    numberFormatters.set(key, formatter);
+  }
+  return formatter.format(value);
 }

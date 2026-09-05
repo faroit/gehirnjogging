@@ -7,7 +7,9 @@
     <meta name="description" content="Dr. Stöter's Gehirnjogging is a private, offline-first mental arithmetic sprint with on-device handwriting recognition." />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./public/icon.svg" type="image/svg+xml" />
+    <link rel="preload" href="./public/model/digits.bin" as="fetch" type="application/octet-stream" crossorigin />
     <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./src/app.js"></script>
     <title>Dr. Stöter's Gehirnjogging</title>
   </head>
   <body>
@@ -61,7 +63,7 @@
             </div>
             <details>
               <summary data-i18n="home.howTitle">How handwriting works</summary>
-              <p data-i18n="home.howBody">Write one or two large digits, then tap Submit. A tiny 67 KB neural network reads your ink right here. Nothing is uploaded.</p>
+              <p data-i18n="home.howBody">Write one or two large digits, then tap Submit. A tiny 50 KB neural network reads your ink right here. Nothing is uploaded.</p>
             </details>
           </aside>
         </section>
@@ -166,6 +168,5 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="./src/app.js"></script>
   </body>
 </html>

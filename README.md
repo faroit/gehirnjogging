@@ -37,22 +37,24 @@ References: the [official Nintendo DS manual](https://www.nintendo.com/eu/media/
 
 ## Handwriting model
 
-Recognition stays entirely on the device. `public/model/digits.json` is a **66.8 KiB int8-quantized neural network** with this architecture:
+Recognition stays entirely on the device. `public/model/digits.bin` is a **49.9 KiB int8-quantized neural network** with this architecture:
 
 ```text
 28 × 28 grayscale input → 64 ReLU units → 10 digit probabilities
 ```
 
-The model was trained on MNIST and reaches 97.0% on the MNIST test set. The runtime is handwritten in browser-native JavaScript with typed arrays, so there is no TensorFlow or other ML runtime to download. The pad never recognizes while the player is writing: pressing **Submit answer** segments the finished ink and classifies one or two digits.
+The model was trained on MNIST and reaches 97.0% on the MNIST test set. The runtime is handwritten in browser-native JavaScript with typed arrays, so there is no TensorFlow or other ML runtime to download. The binary is preloaded while the page opens, and inference avoids per-digit allocations. The pad never recognizes while the player is writing: pressing **Submit answer** segments the finished ink on a tiny mask and classifies one or two digits.
+
+The little-endian binary starts with the 8-byte magic `DGMLP001`, three uint32 dimensions, test accuracy and two float32 quantization scales. It is followed by int8 first-layer weights, float32 first-layer biases, int8 second-layer weights, and float32 second-layer biases. Run `npm run benchmark` to measure inference on the current machine.
 
 To retrain it, download the standard `mnist.npz` dataset and run:
 
 ```bash
-/path/to/python-with-numpy tools/train_digit_model.py mnist.npz public/model/digits.json
+/path/to/python-with-numpy tools/train_digit_model.py mnist.npz public/model/digits.bin
 ```
 
-MNIST is available under CC BY-SA 3.0. The exported file records the dataset attribution and measured test accuracy.
+MNIST is available under CC BY-SA 3.0. The binary header records the model dimensions, quantization scales, and measured test accuracy.
 
 ## iOS path
 
-The game rules, preprocessing pipeline, and compact dense-network weights are framework-independent. A later iOS version can reuse the same JSON weights directly in Swift or convert the two dense layers to Core ML. The PWA can already be added to the iPad or iPhone Home Screen for a standalone full-screen experience.
+The game rules, preprocessing pipeline, and compact dense-network weights are framework-independent. A later iOS version can read the same documented binary weights directly in Swift or convert the two dense layers to Core ML. The PWA can already be added to the iPad or iPhone Home Screen for a standalone full-screen experience.

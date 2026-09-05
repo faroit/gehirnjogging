@@ -1,11 +1,12 @@
-const CACHE_NAME = "dr-stoeter-gehirnjogging-v1";
+const CACHE_PREFIX = "dr-stoeter-gehirnjogging-";
+const CACHE_NAME = `${CACHE_PREFIX}v2`;
 const APP_ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./manifest.webmanifest",
   "./public/icon.svg",
-  "./public/model/digits.json",
+  "./public/model/digits.bin",
   "./src/app.js",
   "./src/digit-model.js",
   "./src/game-core.js",
@@ -14,26 +15,41 @@ const APP_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_ASSETS)));
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_ASSETS);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((names) => Promise.all(names.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name)))),
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names
+      .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
+      .map((name) => caches.delete(name)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-      if (response.ok) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(event.request);
+    if (cached) return cached;
+    try {
+      const response = await fetch(event.request);
+      if (response.ok && new URL(event.request.url).origin === self.location.origin) {
+        await cache.put(event.request, response.clone());
       }
       return response;
-    })),
-  );
+    } catch (error) {
+      if (event.request.mode === "navigate") {
+        const fallback = await cache.match("./index.html");
+        if (fallback) return fallback;
+      }
+      throw error;
+    }
+  })());
 });
