@@ -6,6 +6,7 @@ import { InkRecognizer } from "./ink-recognizer.js";
 const elements = Object.fromEntries([
   "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button",
   "header-best", "model-note", "progress-text", "timer-text", "equation", "feedback-mark",
+  "answer-flash",
   "progress-bar", "recognition-label", "recognition-state", "ink-canvas", "canvas-guide",
   "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "result-rank", "result-burst",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
@@ -24,6 +25,7 @@ let lastTimerTenth = -1;
 let acceptingAnswer = false;
 let toastTimer = 0;
 let feedbackAnimation;
+let feedbackFlashAnimation;
 let modelState = "loading";
 let modelAccuracy = 0;
 let latestSummary = null;
@@ -125,9 +127,12 @@ function startGame() {
 
 function flashFeedback(correct, value) {
   const mark = elements["feedback-mark"];
+  const flash = elements["answer-flash"];
   mark.textContent = correct ? "✓" : `${value} ×`;
   mark.className = `feedback-mark${correct ? "" : " is-wrong"}`;
+  flash.className = `answer-flash ${correct ? "is-correct" : "is-wrong"}`;
   feedbackAnimation?.cancel();
+  feedbackFlashAnimation?.cancel();
   feedbackAnimation = mark.animate(
     [
       { opacity: 0, transform: "rotate(-12deg) scale(.5)" },
@@ -136,6 +141,19 @@ function flashFeedback(correct, value) {
       { opacity: 0, transform: "rotate(-3deg) scale(1.12)" },
     ],
     { duration: 480, easing: "cubic-bezier(.18,.8,.3,1)" },
+  );
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  feedbackFlashAnimation = flash.animate(
+    reduceMotion
+      ? [{ opacity: .58 }, { opacity: 0 }]
+      : [
+          { opacity: 0 },
+          { opacity: .78, offset: .08 },
+          { opacity: .58, offset: .58 },
+          { opacity: .2, offset: .8 },
+          { opacity: 0 },
+        ],
+    { duration: reduceMotion ? 180 : 720, easing: "cubic-bezier(.18,.8,.3,1)" },
   );
 }
 
