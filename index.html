@@ -96,11 +96,17 @@
                 <div class="recognition-state" id="recognition-state"><span></span><b data-i18n="recognition.ready">Ready</b></div>
               </div>
 
-              <div class="canvas-wrap" id="canvas-wrap">
-                <canvas id="ink-canvas" aria-label="Write your numerical answer here using touch, mouse, or pen" data-i18n-aria-label="aria.canvasOne"></canvas>
-                <div class="canvas-guide" id="canvas-guide" aria-hidden="true">
-                  <span data-i18n="game.writeHere">write here</span>
+              <div class="answer-entry">
+                <div class="canvas-wrap" id="canvas-wrap">
+                  <canvas id="ink-canvas" aria-label="Write your numerical answer here using touch, mouse, or pen" data-i18n-aria-label="aria.canvasOne"></canvas>
+                  <div class="canvas-guide" id="canvas-guide" aria-hidden="true">
+                    <span data-i18n="game.writeHere">write here</span>
+                  </div>
                 </div>
+                <button class="button button--submit" id="submit-answer-button">
+                  <span data-i18n="game.submit">Submit answer</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+                </button>
               </div>
 
               <div class="ink-actions">
@@ -111,10 +117,6 @@
                 <button class="button button--quiet" id="keyboard-button" aria-expanded="false">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M7 10h.01M11 10h.01M15 10h.01M18 10h.01M8 14h8" /></svg>
                   <span data-i18n="game.typeInstead">Type instead</span>
-                </button>
-                <button class="button button--submit" id="submit-answer-button">
-                  <span data-i18n="game.submit">Submit answer</span>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
                 </button>
               </div>
               <form class="keyboard-entry" id="keyboard-entry" hidden>

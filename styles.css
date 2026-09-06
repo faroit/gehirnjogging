@@ -566,13 +566,18 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 .recognition-state.is-reading span { background: var(--yellow); animation: breathe .75s ease-in-out infinite; }
 .recognition-state.is-unsure span { background: var(--coral); }
 
+.answer-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
+  margin: 24px 0 20px;
+}
+
 .canvas-wrap {
   position: relative;
   min-height: 330px;
-  margin: 24px 0 20px;
   overflow: hidden;
   border: 2px solid var(--ink);
-  border-radius: 20px;
+  border-radius: 20px 0 0 20px;
   background:
     repeating-linear-gradient(0deg, rgba(255,255,255,.92) 0 43px, rgba(77,112,255,.11) 43px 44px),
     #ffffff;
@@ -610,15 +615,24 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 
 .ink-actions { display: flex; align-items: center; gap: 10px; }
 .ink-actions .button { font-size: 9px; }
-.button--submit {
-  min-height: 44px;
-  margin-left: auto;
-  padding-inline: 20px;
+.answer-entry .button--submit {
+  align-self: stretch;
+  min-width: 0;
+  min-height: 330px;
+  padding: 20px 14px;
+  border: 2px solid var(--ink);
+  border-left: 0;
+  border-radius: 0 20px 20px 0;
+  flex-direction: column;
+  line-height: 1.35;
+  text-align: center;
   color: #fff;
   background: var(--coral);
   box-shadow: 0 5px 0 #c83256, 0 10px 18px rgba(217, 59, 95, .2);
 }
-.button--submit:hover:not(:disabled) { background: var(--coral-dark); }
+.answer-entry .button--submit svg { width: 30px; height: 30px; }
+.answer-entry .button--submit:hover:not(:disabled) { background: var(--coral-dark); transform: none; }
+.answer-entry .button--submit:active:not(:disabled) { transform: translateX(2px); }
 
 .keyboard-entry {
   display: grid;
@@ -762,6 +776,7 @@ footer {
   .problem-stage { min-height: 190px; }
   .ink-panel { min-height: 460px; border: 0; border-top: 1px solid var(--line); border-radius: 0 0 22px 22px; box-shadow: 0 18px 42px rgba(52,42,24,.1); }
   .canvas-wrap { min-height: 280px; }
+  .answer-entry .button--submit { min-height: 280px; }
   .screen--results { grid-template-columns: 1fr; margin: 26px 0; }
   .run-log { max-height: none; }
 }
@@ -783,9 +798,15 @@ footer {
   .equation { font-size: clamp(58px, 20vw, 86px); }
   .problem-stage { min-height: 165px; }
   .problem-hint { display: none; }
-  .canvas-wrap { min-height: 250px; margin: 18px 0 14px; }
+  .answer-entry { grid-template-columns: 1fr; gap: 10px; margin: 18px 0 14px; }
+  .canvas-wrap { min-height: 250px; border-radius: 20px; }
   .ink-actions .button { padding: 0 12px; letter-spacing: .05em; }
-  .button--submit { flex: 1; }
+  .answer-entry .button--submit {
+    min-height: 54px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    flex-direction: row;
+  }
   #keyboard-button { font-size: 0; gap: 0; }
   #keyboard-button svg { width: 18px; }
   .score-block__main strong { font-size: clamp(68px, 20vw, 92px); }
@@ -800,6 +821,7 @@ footer {
   .app-shell { padding-block: 14px; }
   .game-grid { min-height: 560px; margin: 8px auto; }
   .canvas-wrap { min-height: 290px; }
+  .answer-entry .button--submit { min-height: 290px; }
   footer { display: none; }
 }
 
