@@ -99,6 +99,26 @@ function renderKeypad() {
   elements["keypad-backspace"].disabled = !hasDigits;
 }
 
+function addKeypadDigit(digit) {
+  if (!acceptingAnswer || keypadDigits.length >= 2) return;
+  keypadDigits = keypadDigits === "0" ? digit : keypadDigits + digit;
+  renderKeypad();
+}
+
+function deleteKeypadDigit() {
+  if (!acceptingAnswer || !keypadDigits) return;
+  keypadDigits = keypadDigits.slice(0, -1);
+  renderKeypad();
+}
+
+function submitKeypadAnswer() {
+  if (!acceptingAnswer || !keypadDigits) return;
+  const value = Number(keypadDigits);
+  keypadDigits = "";
+  renderKeypad();
+  submitAnswer(value);
+}
+
 function updateInputModeCopy() {
   elements["keyboard-button"].querySelector("span").textContent = t(keypadMode ? "game.useHandwriting" : "game.useKeypad");
 }
@@ -403,25 +423,31 @@ function bindUi() {
   elements["submit-answer-button"].addEventListener("click", () => recognizer?.submit());
   elements["keyboard-button"].addEventListener("click", () => setKeypadMode(!keypadMode));
   elements["keyboard-entry"].querySelectorAll("[data-digit]").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (!acceptingAnswer || keypadDigits.length >= 2) return;
-      keypadDigits = keypadDigits === "0" ? button.dataset.digit : keypadDigits + button.dataset.digit;
-      renderKeypad();
-    });
+    button.addEventListener("click", () => addKeypadDigit(button.dataset.digit));
   });
-  elements["keypad-backspace"].addEventListener("click", () => {
-    keypadDigits = keypadDigits.slice(0, -1);
-    renderKeypad();
-  });
+  elements["keypad-backspace"].addEventListener("click", deleteKeypadDigit);
   elements["keyboard-entry"].addEventListener("submit", (event) => {
     event.preventDefault();
-    if (!keypadDigits) return;
-    const value = Number(keypadDigits);
-    keypadDigits = "";
-    renderKeypad();
-    submitAnswer(value);
+    submitKeypadAnswer();
   });
   window.addEventListener("keydown", (event) => {
+    if (keypadMode && acceptingAnswer && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      if (/^\d$/.test(event.key)) {
+        event.preventDefault();
+        addKeypadDigit(event.key);
+        return;
+      }
+      if (event.key === "Backspace" || event.key === "Delete") {
+        event.preventDefault();
+        deleteKeypadDigit();
+        return;
+      }
+      if (event.key === "Enter") {
+        event.preventDefault();
+        submitKeypadAnswer();
+        return;
+      }
+    }
     if (event.key === "Escape" && acceptingAnswer && !currentFullscreenElement()) recognizer?.clear();
   });
   elements["language-select"].addEventListener("change", (event) => setLocale(event.target.value));
