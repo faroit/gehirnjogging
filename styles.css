@@ -485,8 +485,23 @@ main {
   gap: 20px;
 }
 
-.game-meta div { display: grid; gap: 5px; }
+.game-meta > div { display: grid; gap: 5px; }
 .game-meta div:last-child { text-align: right; }
+.game-meta__controls {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.game-meta__controls .button--game-control {
+  min-height: 34px;
+  padding: 0 10px;
+  border-width: 1.5px;
+  font-size: 9px;
+  letter-spacing: .06em;
+  box-shadow: 0 2px 0 rgba(20, 48, 92, .14);
+}
+.game-meta__controls .button--quit { color: var(--coral-dark); border-color: var(--coral-dark); background: #fff4f6; }
 .game-meta span { color: var(--ink-soft); font-size: 9px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
 .game-meta strong { font-size: 15px; letter-spacing: .03em; }
 .game-meta__timer strong {
@@ -905,6 +920,9 @@ footer {
   .language-control::after { right: 8px; }
   .record strong { padding-inline: 8px; }
   .record span { display: none; }
+  .game-meta { gap: 8px; }
+  .game-meta__controls { gap: 5px; }
+  .game-meta__controls .button--game-control { padding-inline: 7px; font-size: 8px; }
   .screen--home { gap: 14px; padding: 12px 0; }
   .hero-copy h1 { font-size: clamp(44px, 13.5vw, 62px); line-height: .9; }
   .lede { margin: 22px 0 18px; font-size: 17px; }

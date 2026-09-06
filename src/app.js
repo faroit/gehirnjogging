@@ -4,7 +4,7 @@ import { applyDocumentTranslations, formatDecimal, initialLocale, normaliseLocal
 import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
-  "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button", "share-button",
+  "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button", "share-button", "restart-button", "quit-button",
   "header-best", "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
@@ -179,6 +179,23 @@ function startGame() {
     runStartedAt = performance.now();
     updateTimer();
   }, 270);
+}
+
+function quitGame() {
+  const isActiveRun = runStartedAt && problemIndex < TOTAL_PROBLEMS;
+  if (isActiveRun && !confirm(t("confirm.leave"))) return;
+  cancelAnimationFrame(timerFrame);
+  runStartedAt = 0;
+  acceptingAnswer = false;
+  recognizer?.setEnabled(false);
+  window.scrollTo({ top: 0, behavior: "auto" });
+  showScreen("home-screen");
+}
+
+function restartGame() {
+  const isActiveRun = runStartedAt && problemIndex < TOTAL_PROBLEMS;
+  if (isActiveRun && !confirm(t("confirm.restart"))) return;
+  startGame();
 }
 
 function flashFeedback(correct, value) {
@@ -407,6 +424,8 @@ async function toggleFullscreen() {
 function bindUi() {
   elements["start-button"].addEventListener("click", startGame);
   elements["again-button"].addEventListener("click", startGame);
+  elements["restart-button"].addEventListener("click", restartGame);
+  elements["quit-button"].addEventListener("click", quitGame);
   elements["share-button"].addEventListener("click", shareResult);
   elements["home-button"].addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -414,10 +433,7 @@ function bindUi() {
   });
   document.querySelector(".wordmark").addEventListener("click", (event) => {
     event.preventDefault();
-    if (runStartedAt && problemIndex < TOTAL_PROBLEMS && !confirm(t("confirm.leave"))) return;
-    cancelAnimationFrame(timerFrame);
-    runStartedAt = 0;
-    showScreen("home-screen");
+    quitGame();
   });
   elements["erase-button"].addEventListener("click", () => recognizer?.clear());
   elements["submit-answer-button"].addEventListener("click", () => recognizer?.submit());
