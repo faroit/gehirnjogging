@@ -507,8 +507,20 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 .game-meta div:last-child { text-align: right; }
 .game-meta span { color: var(--ink-soft); font-size: 9px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
 .game-meta strong { font-size: 15px; letter-spacing: .03em; }
-.game-meta__timer strong { display: inline-flex; align-items: baseline; justify-content: flex-end; }
-.game-meta__timer small { color: var(--ink-soft); font-size: 10px; font-weight: 500; }
+.game-meta__timer strong {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  color: var(--blue);
+  font-family: ui-rounded, "Avenir Next Rounded", sans-serif;
+  font-size: clamp(28px, 3.1vw, 42px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: .9;
+}
+.game-meta__timer #timer-text { color: inherit; font: inherit; letter-spacing: inherit; text-transform: none; }
+.game-meta__timer small { margin-left: .18em; color: var(--ink-soft); font-size: .38em; font-weight: 800; letter-spacing: 0; }
 
 .problem-stage {
   position: relative;
