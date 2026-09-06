@@ -186,7 +186,7 @@ footer {
   width: 64px;
   max-width: none;
   height: auto;
-  transform: rotate(4deg) translateY(2px);
+  transform: translateY(2px);
 }
 
 .wordmark__text {
