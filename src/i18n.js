@@ -332,13 +332,18 @@ const messages = {
 };
 
 export function normaliseLocale(value) {
-  const language = String(value || "").toLowerCase().split("-")[0];
+  const language = String(value || "").trim().toLowerCase().split(/[-_]/)[0];
   return SUPPORTED_LOCALES.includes(language) ? language : "en";
 }
 
 function supportedLocale(value) {
-  const language = String(value || "").toLowerCase().split("-")[0];
+  const language = String(value || "").trim().toLowerCase().split(/[-_]/)[0];
   return SUPPORTED_LOCALES.includes(language) ? language : null;
+}
+
+export function detectBrowserLocale(preferences = []) {
+  const requested = Array.isArray(preferences) ? preferences : [preferences];
+  return requested.map(supportedLocale).find(Boolean) || "en";
 }
 
 export function initialLocale() {
@@ -347,8 +352,9 @@ export function initialLocale() {
     if (saved) return normaliseLocale(saved);
   } catch { /* Storage can be unavailable in private mode. */ }
 
-  const preferences = typeof navigator === "undefined" ? [] : navigator.languages || [navigator.language];
-  return preferences.map(supportedLocale).find(Boolean) || "en";
+  if (typeof navigator === "undefined") return "en";
+  const preferences = [...(navigator.languages || []), navigator.language];
+  return detectBrowserLocale(preferences);
 }
 
 export function rememberLocale(locale) {

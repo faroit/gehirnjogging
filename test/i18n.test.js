@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  detectBrowserLocale,
   formatDecimal,
   missingTranslationKeys,
   normaliseLocale,
@@ -12,6 +13,13 @@ assert.deepEqual(SUPPORTED_LOCALES, ["en", "de", "fr", "es"]);
 assert.equal(normaliseLocale("de-DE"), "de");
 assert.equal(normaliseLocale("fr-CA"), "fr");
 assert.equal(normaliseLocale("unknown"), "en");
+assert.equal(detectBrowserLocale(["de-DE"]), "de");
+assert.equal(detectBrowserLocale(["fr-CA"]), "fr");
+assert.equal(detectBrowserLocale(["es-MX"]), "es");
+assert.equal(detectBrowserLocale(["en-GB"]), "en");
+assert.equal(detectBrowserLocale(["nl-NL", "de-AT"]), "de");
+assert.equal(detectBrowserLocale(["pt-BR"]), "en");
+assert.equal(detectBrowserLocale("de_CH"), "de");
 
 for (const locale of SUPPORTED_LOCALES) {
   assert.deepEqual(missingTranslationKeys(locale), [], `${locale} is missing translation keys`);
