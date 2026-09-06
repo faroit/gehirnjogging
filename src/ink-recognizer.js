@@ -96,9 +96,9 @@ export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
   return selected;
 }
 
-export function isRecognitionReady(result, expectedDigits, hasDistinctDigits = true) {
+export function isRecognitionReady(result, expectedDigits, hasDistinctDigits = true, strokeCount = Infinity) {
   if (!result || !Number.isFinite(result.confidence) || !Number.isFinite(result.margin)) return false;
-  if (expectedDigits === 2 && !hasDistinctDigits) return false;
+  if (expectedDigits === 2 && (!hasDistinctDigits || strokeCount < 2)) return false;
   return result.confidence >= 0.44 && result.margin >= 0.08;
 }
 
@@ -395,7 +395,7 @@ export class InkRecognizer {
       prediction = result;
     }
 
-    const ready = isRecognitionReady(result, this.expectedDigits, hasDistinctDigits);
+    const ready = isRecognitionReady(result, this.expectedDigits, hasDistinctDigits, this.strokes.length);
     this.previewResult = ready ? result : null;
     this.setSubmitAvailable(ready);
     this.onPrediction(prediction?.digits ?? null, { complete: ready });
@@ -492,6 +492,11 @@ export class InkRecognizer {
   }
 
   findTwoDigitCandidates() {
+    // A continuous pen stroke is always one digit. Splitting it at an ink valley
+    // turns shapes such as a handwritten "2" into bogus answers like "12".
+    // Two-digit answers must therefore be written as separate pen strokes.
+    if (this.strokes.length < 2) return [];
+
     const pixels = this.maskContext.getImageData(0, 0, MASK_WIDTH, MASK_HEIGHT).data;
     const columns = this.maskColumns;
     const tops = this.maskTop;
@@ -514,28 +519,10 @@ export class InkRecognizer {
     }
     if (maxX < minX) return [];
 
-    // When there is one unmistakable separator, do exactly one clean cut. Each side
-    // is then independently cropped, scaled, and centred before classification.
-    const dominantSplit = findDominantBlankSplit(columns, minX, maxX);
-    if (dominantSplit !== null) {
-      const segments = [
-        this.boundsForMaskRange(minX, dominantSplit - 1, columns, tops, bottoms),
-        this.boundsForMaskRange(dominantSplit, maxX, columns, tops, bottoms),
-      ].filter(Boolean);
-      return segments.length === 2 ? [{ prior: 0, distinct: true, segments }] : [];
-    }
-
-    const strokeCuts = this.findStrokeCuts(minX, maxX);
-    const splitCandidates = findSplitCandidates(columns, minX, maxX, strokeCuts);
-    const pixelCandidates = splitCandidates.map(({ cut, prior, evidence }) => ({
-      prior,
-      distinct: evidence !== "fallback",
-      segments: [
-        this.boundsForMaskRange(minX, cut - 1, columns, tops, bottoms),
-        this.boundsForMaskRange(cut, maxX, columns, tops, bottoms),
-      ].filter(Boolean),
-    })).filter((candidate) => candidate.segments.length === 2);
-    return [...this.findStrokeGroupCandidates(), ...pixelCandidates];
+    // Preserve the natural writing order: one completed digit, then the next.
+    // Pixel-only cuts are deliberately not used here; a valley inside a single
+    // digit is not evidence of a second digit.
+    return this.findStrokeGroupCandidates().filter((candidate) => candidate.distinct);
   }
 
   findStrokeGroupCandidates() {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { findDominantBlankSplit, findSplitCandidates, isRecognitionReady } from "../src/ink-recognizer.js";
+import { InkRecognizer, findDominantBlankSplit, findSplitCandidates, isRecognitionReady } from "../src/ink-recognizer.js";
 
 function columns(values) {
   return Uint16Array.from(values);
@@ -32,11 +32,18 @@ const strokeAware = findSplitCandidates(misleadingGap, 1, 14, [{ cut: 11, bonus:
 assert.equal(strokeAware[0].cut, 11, "stroke grouping can outrank an internal digit gap");
 
 assert.deepEqual(findSplitCandidates(columns([0, 8, 0]), 1, 1), []);
+assert.deepEqual(
+  InkRecognizer.prototype.findTwoDigitCandidates.call({ strokes: [[]] }),
+  [],
+  "a single stroke never reaches two-digit segmentation",
+);
 
 const confidentDigit = { confidence: 0.91, margin: 0.62 };
 assert.equal(isRecognitionReady(confidentDigit, 1), true, "one confident digit enables submit");
 assert.equal(isRecognitionReady(confidentDigit, 2, false), false, "one digit cannot enable a two-digit answer");
 assert.equal(isRecognitionReady(confidentDigit, 2, true), true, "two distinct confident digits enable submit");
+assert.equal(isRecognitionReady(confidentDigit, 2, true, 1), false, "a single pen stroke can never become two digits");
+assert.equal(isRecognitionReady(confidentDigit, 2, true, 2), true, "two separate pen strokes can enable a two-digit answer");
 assert.equal(isRecognitionReady({ confidence: 0.3, margin: 0.2 }, 1), false, "uncertain ink stays disabled");
 assert.equal(isRecognitionReady({ confidence: 0.9, margin: 0.02 }, 1), false, "ambiguous ink stays disabled");
 
