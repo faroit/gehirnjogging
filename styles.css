@@ -746,7 +746,7 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
   border: 2px solid var(--ink);
   border-radius: 15px 19px 14px 18px;
   color: var(--ink);
-  background: #fff7c7;
+  background: var(--paper);
   box-shadow: 0 4px 0 rgba(20, 48, 92, .2);
   cursor: pointer;
   font-family: ui-rounded, "Avenir Next Rounded", sans-serif;
@@ -756,12 +756,10 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
   transition: transform 100ms ease, box-shadow 100ms ease, background 100ms ease;
 }
 
-.number-pad__keys button:nth-child(3n + 2) { background: var(--sky); }
-.number-pad__keys button:nth-child(3n) { background: #efe9ff; }
 .number-pad__keys button:hover:not(:disabled) { transform: translateY(-1px); }
 .number-pad__keys button:active:not(:disabled) { box-shadow: 0 1px 0 rgba(20, 48, 92, .2); transform: translateY(3px); }
 .number-pad__keys button:disabled { cursor: not-allowed; opacity: .45; }
-.number-pad__keys .number-pad__backspace { color: var(--coral-dark); background: #ffe5eb; font-size: 27px; }
+.number-pad__keys .number-pad__backspace { color: var(--ink-soft); background: var(--paper-deep); font-size: 27px; }
 .number-pad__keys .number-pad__submit { color: #fff; background: var(--coral); font-size: clamp(10px, 1.5vw, 13px); letter-spacing: .08em; text-transform: uppercase; }
 .number-pad__keys .number-pad__submit:disabled { color: rgba(20, 48, 92, .55); background: #b8c2ca; opacity: 1; }
 
