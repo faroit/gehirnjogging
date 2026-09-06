@@ -55,7 +55,6 @@ button { color: inherit; }
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
-summary:focus-visible,
 a:focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 4px;
@@ -431,17 +430,6 @@ main {
 .rule-grid div:nth-child(4) { background: rgba(77, 112, 255, .12); }
 .rule-grid span { color: var(--ink-soft); font-size: 10px; text-transform: uppercase; }
 .rule-grid strong { font-family: var(--font-editorial); font-size: 22px; }
-
-details {
-  position: relative;
-  z-index: 1;
-  margin-top: 18px;
-  color: var(--ink-soft);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 
 .game-grid {
   position: relative;
