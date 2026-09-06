@@ -274,7 +274,10 @@ main {
   z-index: 20;
   left: 50%;
   bottom: max(16px, env(safe-area-inset-bottom));
-  width: min(calc(100% - 40px), 300px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: min(calc(100% - 40px), 440px);
   pointer-events: none;
   opacity: 0;
   transform: translate(-50%, calc(100% + 28px));
@@ -371,6 +374,11 @@ main {
   box-shadow: 0 8px 0 #304dcc, 0 16px 28px rgba(77, 112, 255, .26);
 }
 
+.button--daily { min-width: 0; }
+.button--easy { color: var(--ink); background: var(--mint); box-shadow: 0 7px 0 #36ae88, 0 13px 24px rgba(101, 221, 180, .24); }
+.button--easy:hover:not(:disabled) { background: #7ae8c1; box-shadow: 0 8px 0 #36ae88, 0 16px 28px rgba(101, 221, 180, .3); }
+.button--daily:disabled { color: #66738a; background: #c8cfda; box-shadow: 0 5px 0 #9ea8b8, 0 9px 16px rgba(20, 48, 92, .1); opacity: 1; }
+
 .button--quiet {
   min-height: 42px;
   padding: 0 16px;
@@ -420,6 +428,15 @@ main {
   box-shadow: 12px 12px 0 var(--yellow), var(--shadow);
   transform: rotate(1.6deg);
 }
+
+.daily-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  gap: 14px;
+}
+
+.daily-action { min-width: 0; }
+.daily-actions .button { width: 100%; }
 
 .mode-card {
   display: grid;
@@ -1001,6 +1018,7 @@ footer {
   .app-shell { padding-block: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-bottom)); }
   .screen--home { display: block; height: 100%; padding: 18px 0 max(104px, env(safe-area-inset-bottom)); }
   .hero-copy { margin-bottom: 20px; }
+  .daily-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 520px; }
   .hero-card { width: 100%; min-height: auto; transform: rotate(0); }
   .screen--game { height: 100%; }
   .game-grid { grid-template-columns: 1fr; grid-template-rows: minmax(180px, .72fr) minmax(0, 1.28fr); height: 100%; margin: 0; box-shadow: none; }
@@ -1027,6 +1045,8 @@ footer {
   .game-meta__controls .button--game-control { padding-inline: 7px; font-size: 8px; }
   .screen--home { padding: 12px 0 max(96px, env(safe-area-inset-bottom)); }
   .hero-copy { margin-bottom: 14px; }
+  .daily-actions { gap: 10px; }
+  .daily-actions .button, .home-play-dock .button { padding-inline: 12px; font-size: 10px; letter-spacing: .06em; }
   .hero-copy h1 { font-size: clamp(44px, 13.5vw, 62px); line-height: .9; }
   .lede { margin: 22px 0 18px; font-size: 17px; }
   .hero-card { padding: 22px 20px; }

@@ -14,8 +14,8 @@ import { applyDocumentTranslations, formatDecimal, initialLocale, normaliseLocal
 import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
-  "home-screen", "game-screen", "results-screen", "start-button", "daily-easy-dock-button", "home-play-dock", "again-button", "home-button", "share-button", "restart-button", "quit-button",
-  "daily-normal-button", "daily-tab", "training-tab", "daily-mode-panel", "training-mode-panel", "daily-date", "daily-easy-status", "daily-normal-status",
+  "home-screen", "game-screen", "results-screen", "start-button", "daily-easy-dock-button", "daily-normal-dock-button", "home-play-dock", "again-button", "home-button", "share-button", "restart-button", "quit-button",
+  "daily-normal-button", "daily-date", "daily-easy-status", "daily-normal-status",
   "header-best", "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
@@ -74,16 +74,6 @@ function formatDailyDate() {
   return new Intl.DateTimeFormat(locale, { weekday: "long", month: "short", day: "numeric" }).format(new Date());
 }
 
-function setModeTab(tab) {
-  const daily = tab === "daily";
-  elements["daily-tab"].classList.toggle("is-active", daily);
-  elements["training-tab"].classList.toggle("is-active", !daily);
-  elements["daily-tab"].setAttribute("aria-selected", String(daily));
-  elements["training-tab"].setAttribute("aria-selected", String(!daily));
-  elements["daily-mode-panel"].hidden = !daily;
-  elements["training-mode-panel"].hidden = daily;
-}
-
 function updateHomeModes() {
   const ready = modelState !== "loading";
   const easyComplete = hasCompletedDaily(GAME_MODES.DAILY_EASY);
@@ -96,8 +86,14 @@ function updateHomeModes() {
     button.querySelector("span").textContent = easyLabel;
     button.disabled = !ready || easyComplete;
   }
+  const normalLabel = !ready
+    ? t("home.loading")
+    : normalComplete ? t("home.dailyNormalCompleteButton") : t("mode.daily-normal");
+  for (const button of [elements["daily-normal-button"], elements["daily-normal-dock-button"]]) {
+    button.querySelector("span").textContent = normalLabel;
+    button.disabled = !ready || normalComplete;
+  }
   elements["daily-easy-status"].textContent = easyComplete ? t("home.dailyComplete") : t("home.dailyReady");
-  elements["daily-normal-button"].disabled = !ready || normalComplete;
   elements["daily-normal-status"].textContent = normalComplete ? t("home.dailyComplete") : t("home.dailyReady");
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
     button.disabled = !ready;
@@ -110,6 +106,7 @@ function updateHomeScrollDock() {
   appShell.classList.toggle("has-home-scroll", visible);
   elements["home-play-dock"].setAttribute("aria-hidden", String(!visible));
   elements["daily-easy-dock-button"].tabIndex = visible ? 0 : -1;
+  elements["daily-normal-dock-button"].tabIndex = visible ? 0 : -1;
 }
 
 function readBest() {
@@ -512,10 +509,9 @@ async function toggleFullscreen() {
 function bindUi() {
   elements["start-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_EASY));
   elements["daily-easy-dock-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_EASY));
+  elements["daily-normal-dock-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_NORMAL));
   elements["again-button"].addEventListener("click", startGame);
   elements["daily-normal-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_NORMAL));
-  elements["daily-tab"].addEventListener("click", () => setModeTab("daily"));
-  elements["training-tab"].addEventListener("click", () => setModeTab("training"));
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
     button.addEventListener("click", () => startGame(button.dataset.gameMode));
   });
@@ -571,7 +567,6 @@ function bindUi() {
 async function initialise() {
   setLocale(locale, { remember: false });
   bindUi();
-  setModeTab("daily");
   updateFullscreenButton();
   updateBestLabel();
   try {

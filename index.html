@@ -47,42 +47,38 @@
             <p class="eyebrow" id="daily-date" data-i18n="home.eyebrow">Today's challenge</p>
             <h1 id="home-title" data-i18n-html="home.title">Wake up<br />your <em>numbers!</em></h1>
             <p class="lede" data-i18n="home.lede">One shared challenge every day. Twenty sums. One official time.</p>
-            <button class="button button--primary" id="start-button" disabled>
-              <span data-i18n="home.loading">Loading the pen…</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
-            </button>
-            <p class="home-mode-status" id="daily-easy-status" role="status"></p>
+            <div class="daily-actions" aria-label="Choose today's daily game" data-i18n-aria-label="aria.dailyGames">
+              <div class="daily-action">
+                <button class="button button--primary button--daily button--easy" id="start-button" disabled>
+                  <span data-i18n="home.loading">Loading the pen…</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+                </button>
+                <p class="home-mode-status" id="daily-easy-status" role="status"></p>
+              </div>
+              <div class="daily-action">
+                <button class="button button--primary button--daily" id="daily-normal-button" type="button" disabled>
+                  <span data-i18n="home.loading">Loading the pen…</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+                </button>
+                <p class="home-mode-status" id="daily-normal-status" role="status"></p>
+              </div>
+            </div>
           </div>
 
-          <aside class="hero-card mode-card" aria-label="Choose a game mode" data-i18n-aria-label="aria.modePicker">
-            <div class="mode-tabs" role="tablist" aria-label="Play style" data-i18n-aria-label="aria.playStyle">
-              <button class="mode-tab is-active" id="daily-tab" type="button" role="tab" aria-selected="true" aria-controls="daily-mode-panel" data-i18n="home.dailyTab">Daily</button>
-              <button class="mode-tab" id="training-tab" type="button" role="tab" aria-selected="false" aria-controls="training-mode-panel" data-i18n="home.trainingTab">Training</button>
-            </div>
-            <div class="mode-panel" id="daily-mode-panel" role="tabpanel" aria-labelledby="daily-tab">
-              <p class="mode-panel__label" data-i18n="home.dailyChoices">Today's other challenge</p>
-              <button class="mode-option" id="daily-normal-button" type="button" disabled>
-                <span data-i18n="mode.dailyNormal">Normal</span>
-                <small data-i18n="mode.dailyNormalDetail">Larger + and −</small>
-              </button>
-              <p class="mode-option__status" id="daily-normal-status" role="status"></p>
-              <p class="mode-card__note" data-i18n="home.dailyNote">Daily rounds are shared and can be completed once per device.</p>
-            </div>
-            <div class="mode-panel" id="training-mode-panel" role="tabpanel" aria-labelledby="training-tab" hidden>
-              <p class="mode-panel__label" data-i18n="home.trainingChoices">Practice anytime</p>
-              <button class="mode-option" type="button" data-game-mode="training-small">
-                <span data-i18n="mode.trainingSmall">Small + and −</span>
-                <small data-i18n="mode.trainingSmallDetail">Numbers up to 10</small>
-              </button>
-              <button class="mode-option" type="button" data-game-mode="training-large">
-                <span data-i18n="mode.trainingLarge">Large + and −</span>
-                <small data-i18n="mode.trainingLargeDetail">Numbers up to 99</small>
-              </button>
-              <button class="mode-option" type="button" data-game-mode="training-mixed">
-                <span data-i18n="mode.trainingMixed">Mixed practice</span>
-                <small data-i18n="mode.trainingMixedDetail">Small × plus all addition and subtraction</small>
-              </button>
-            </div>
+          <aside class="hero-card mode-card" aria-label="Training games" data-i18n-aria-label="aria.trainingGames">
+            <p class="mode-panel__label" data-i18n="home.trainingChoices">Practice anytime</p>
+            <button class="mode-option" type="button" data-game-mode="training-small">
+              <span data-i18n="mode.trainingSmall">Small + and −</span>
+              <small data-i18n="mode.trainingSmallDetail">Numbers up to 10</small>
+            </button>
+            <button class="mode-option" type="button" data-game-mode="training-large">
+              <span data-i18n="mode.trainingLarge">Large + and −</span>
+              <small data-i18n="mode.trainingLargeDetail">Numbers up to 99</small>
+            </button>
+            <button class="mode-option" type="button" data-game-mode="training-mixed">
+              <span data-i18n="mode.trainingMixed">Mixed practice</span>
+              <small data-i18n="mode.trainingMixedDetail">Small × plus all addition and subtraction</small>
+            </button>
           </aside>
         </section>
 
@@ -202,7 +198,11 @@
       </main>
 
       <div class="home-play-dock" id="home-play-dock" aria-hidden="true">
-        <button class="button button--primary" id="daily-easy-dock-button" type="button" disabled tabindex="-1">
+        <button class="button button--primary button--daily button--easy" id="daily-easy-dock-button" type="button" disabled tabindex="-1">
+          <span data-i18n="home.loading">Loading the pen…</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+        </button>
+        <button class="button button--primary button--daily" id="daily-normal-dock-button" type="button" disabled tabindex="-1">
           <span data-i18n="home.loading">Loading the pen…</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
         </button>
