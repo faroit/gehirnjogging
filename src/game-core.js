@@ -6,6 +6,7 @@ export const GAME_MODES = Object.freeze({
   DAILY_NORMAL: "daily-normal",
   TRAINING_SMALL: "training-small",
   TRAINING_LARGE: "training-large",
+  TRAINING_MULTIPLY: "training-multiply",
   TRAINING_MIXED: "training-mixed",
 });
 
@@ -41,6 +42,7 @@ const MODE_BLUEPRINTS = Object.freeze({
   [GAME_MODES.DAILY_NORMAL]: [["largeAdd", 10], ["largeSubtract", 10]],
   [GAME_MODES.TRAINING_SMALL]: [["smallAdd", 10], ["smallSubtract", 10]],
   [GAME_MODES.TRAINING_LARGE]: [["largeAdd", 10], ["largeSubtract", 10]],
+  [GAME_MODES.TRAINING_MULTIPLY]: [["smallMultiply", 20]],
   [GAME_MODES.TRAINING_MIXED]: [["smallAdd", 4], ["smallSubtract", 4], ["smallMultiply", 4], ["largeAdd", 4], ["largeSubtract", 4]],
 });
 

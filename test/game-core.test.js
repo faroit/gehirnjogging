@@ -46,7 +46,7 @@ function dailyGenerationTest() {
 
 function trainingGenerationTest() {
   const deterministic = () => 0.37;
-  for (const mode of [GAME_MODES.TRAINING_SMALL, GAME_MODES.TRAINING_LARGE, GAME_MODES.TRAINING_MIXED]) {
+  for (const mode of [GAME_MODES.TRAINING_SMALL, GAME_MODES.TRAINING_LARGE, GAME_MODES.TRAINING_MULTIPLY, GAME_MODES.TRAINING_MIXED]) {
     const problems = createTrainingProblems(mode, deterministic);
     assertRound(problems);
   }
@@ -54,6 +54,8 @@ function trainingGenerationTest() {
   assert.ok(small.every((problem) => problem.a <= 10 && problem.b <= 10 && problem.operation !== "×"));
   const large = createTrainingProblems(GAME_MODES.TRAINING_LARGE, deterministic);
   assert.ok(large.every((problem) => problem.a >= 10 && problem.b >= 10 && problem.operation !== "×"));
+  const multiplication = createTrainingProblems(GAME_MODES.TRAINING_MULTIPLY, deterministic);
+  assert.ok(multiplication.every((problem) => problem.a <= 10 && problem.b <= 10 && problem.operation === "×"));
 }
 
 scoringTest();
