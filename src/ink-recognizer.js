@@ -9,6 +9,34 @@ function clamp(value, minimum, maximum) {
   return Math.max(minimum, Math.min(maximum, value));
 }
 
+export function findDominantBlankSplit(columns, minX, maxX) {
+  if (maxX - minX < 6) return null;
+  const span = maxX - minX;
+  const safeStart = minX + Math.max(2, Math.floor(span * 0.18));
+  const safeEnd = maxX - Math.max(2, Math.floor(span * 0.18));
+  const gaps = [];
+  let gapStart = -1;
+
+  for (let x = safeStart; x <= safeEnd + 1; x += 1) {
+    const blank = x <= safeEnd && columns[x] === 0;
+    if (blank && gapStart < 0) gapStart = x;
+    if (!blank && gapStart >= 0) {
+      const gapEnd = x - 1;
+      gaps.push({
+        cut: Math.round((gapStart + gapEnd + 1) / 2),
+        width: gapEnd - gapStart + 1,
+      });
+      gapStart = -1;
+    }
+  }
+  gaps.sort((a, b) => b.width - a.width);
+  const widest = gaps[0];
+  if (!widest || widest.width < Math.max(2, Math.round(span * 0.04))) return null;
+  const runnerUp = gaps[1];
+  if (runnerUp && widest.width < runnerUp.width * 1.5) return null;
+  return widest.cut;
+}
+
 export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
   if (maxX - minX < 4) return [];
 
@@ -421,6 +449,17 @@ export class InkRecognizer {
       }
     }
     if (maxX < minX) return [];
+
+    // When there is one unmistakable separator, do exactly one clean cut. Each side
+    // is then independently cropped, scaled, and centred before classification.
+    const dominantSplit = findDominantBlankSplit(columns, minX, maxX);
+    if (dominantSplit !== null) {
+      const segments = [
+        this.boundsForMaskRange(minX, dominantSplit - 1, columns, tops, bottoms),
+        this.boundsForMaskRange(dominantSplit, maxX, columns, tops, bottoms),
+      ].filter(Boolean);
+      return segments.length === 2 ? [{ prior: 0, segments }] : [];
+    }
 
     const strokeCuts = this.findStrokeCuts(minX, maxX);
     const splitCandidates = findSplitCandidates(columns, minX, maxX, strokeCuts);

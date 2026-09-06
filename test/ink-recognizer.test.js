@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { findSplitCandidates } from "../src/ink-recognizer.js";
+import { findDominantBlankSplit, findSplitCandidates } from "../src/ink-recognizer.js";
 
 function columns(values) {
   return Uint16Array.from(values);
@@ -11,12 +11,19 @@ const separated = columns([
 ]);
 const separatedCuts = findSplitCandidates(separated, 1, 12);
 assert.ok(separatedCuts.some(({ cut }) => cut === 7), "uses the centre of a blank separator");
+assert.equal(findDominantBlankSplit(separated, 1, 12), 7, "a clearly largest gap is authoritative");
 
 const touching = columns([
   0, 7, 10, 12, 9, 5, 2, 3, 8, 12, 10, 7, 0,
 ]);
 const touchingCuts = findSplitCandidates(touching, 1, 11);
 assert.ok(touchingCuts.some(({ cut }) => cut === 6), "finds a low-density split when digits touch");
+assert.equal(findDominantBlankSplit(touching, 1, 11), null, "touching digits use candidate scoring");
+
+const ambiguous = columns([
+  0, 8, 9, 0, 0, 7, 9, 0, 0, 8, 10, 0,
+]);
+assert.equal(findDominantBlankSplit(ambiguous, 1, 10), null, "similar internal gaps remain ambiguous");
 
 const misleadingGap = columns([
   0, 8, 9, 0, 0, 0, 0, 7, 9, 8, 0, 0, 7, 10, 8, 0,
