@@ -7,8 +7,8 @@ const elements = Object.fromEntries([
   "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button",
   "header-best", "model-note", "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
-  "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview",
-  "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "result-rank", "result-burst",
+  "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
+  "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
   "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
@@ -31,6 +31,8 @@ let modelAccuracy = 0;
 let latestSummary = null;
 let recognitionSnapshot = { state: "ready", messageKey: "recognition.writeLarge", parameters: {} };
 let predictionSnapshot = { digits: null, complete: false };
+let keypadMode = false;
+let keypadDigits = "";
 
 const t = (key, parameters) => translate(locale, key, parameters);
 
@@ -85,6 +87,34 @@ function setPrediction(digits, { complete = false } = {}) {
   else preview.removeAttribute("aria-label");
 }
 
+function renderKeypad() {
+  const hasDigits = keypadDigits.length > 0;
+  elements["number-input"].textContent = hasDigits ? keypadDigits : "—";
+  elements["number-input"].setAttribute(
+    "aria-label",
+    hasDigits ? t("game.keypadValue", { value: keypadDigits }) : t("game.keypadEmpty"),
+  );
+  elements["keypad-submit"].disabled = !hasDigits;
+  elements["keypad-backspace"].disabled = !hasDigits;
+}
+
+function updateInputModeCopy() {
+  elements["keyboard-button"].querySelector("span").textContent = t(keypadMode ? "game.useHandwriting" : "game.useKeypad");
+}
+
+function setKeypadMode(enabled) {
+  keypadMode = Boolean(enabled);
+  keypadDigits = "";
+  elements["answer-entry"].hidden = keypadMode;
+  elements["keyboard-entry"].hidden = !keypadMode;
+  elements["erase-button"].hidden = keypadMode;
+  elements["keyboard-button"].setAttribute("aria-expanded", String(keypadMode));
+  recognizer?.clear();
+  recognizer?.setEnabled(!keypadMode && acceptingAnswer);
+  renderKeypad();
+  updateInputModeCopy();
+}
+
 function updateTimer() {
   if (!runStartedAt) return;
   const elapsedTenth = Math.floor((performance.now() - runStartedAt) / 100);
@@ -101,10 +131,11 @@ function renderProblem() {
   elements["progress-bar"].style.transform = `scaleX(${problemIndex / TOTAL_PROBLEMS})`;
   elements.equation.textContent = `${problem.text} =`;
   acceptingAnswer = true;
+  keypadDigits = "";
+  renderKeypad();
   recognizer?.setExpectedDigits(String(problem.answer).length);
-  recognizer?.setEnabled(true);
+  recognizer?.setEnabled(!keypadMode);
   recognizer?.clear();
-  if (!recognizer) elements["keyboard-entry"].hidden = false;
 }
 
 function startGame() {
@@ -118,8 +149,7 @@ function startGame() {
   lastTimerTenth = -1;
   acceptingAnswer = false;
   latestSummary = null;
-  elements["keyboard-entry"].hidden = Boolean(recognizer);
-  elements["keyboard-button"].setAttribute("aria-expanded", "false");
+  setKeypadMode(!recognizer || keypadMode);
   showScreen("game-screen");
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -242,6 +272,8 @@ function refreshLocaleCopy() {
 
   setRecognitionState(recognitionSnapshot.state, recognitionSnapshot.messageKey, recognitionSnapshot.parameters);
   setPrediction(predictionSnapshot.digits, { complete: predictionSnapshot.complete });
+  renderKeypad();
+  updateInputModeCopy();
   updateFullscreenButton();
   recognizer?.refreshLocale();
   if (latestSummary) renderResults(latestSummary);
@@ -314,18 +346,24 @@ function bindUi() {
   });
   elements["erase-button"].addEventListener("click", () => recognizer?.clear());
   elements["submit-answer-button"].addEventListener("click", () => recognizer?.submit());
-  elements["keyboard-button"].addEventListener("click", () => {
-    const form = elements["keyboard-entry"];
-    const isOpening = form.hidden;
-    form.hidden = !isOpening;
-    elements["keyboard-button"].setAttribute("aria-expanded", String(isOpening));
-    if (isOpening) elements["number-input"].focus();
+  elements["keyboard-button"].addEventListener("click", () => setKeypadMode(!keypadMode));
+  elements["keyboard-entry"].querySelectorAll("[data-digit]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!acceptingAnswer || keypadDigits.length >= 2) return;
+      keypadDigits = keypadDigits === "0" ? button.dataset.digit : keypadDigits + button.dataset.digit;
+      renderKeypad();
+    });
+  });
+  elements["keypad-backspace"].addEventListener("click", () => {
+    keypadDigits = keypadDigits.slice(0, -1);
+    renderKeypad();
   });
   elements["keyboard-entry"].addEventListener("submit", (event) => {
     event.preventDefault();
-    const value = Number(elements["number-input"].value);
-    if (!Number.isInteger(value)) return;
-    elements["number-input"].value = "";
+    if (!keypadDigits) return;
+    const value = Number(keypadDigits);
+    keypadDigits = "";
+    renderKeypad();
     submitAnswer(value);
   });
   window.addEventListener("keydown", (event) => {
@@ -367,8 +405,8 @@ async function initialise() {
     elements["start-button"].disabled = false;
     elements["erase-button"].disabled = true;
     elements["submit-answer-button"].disabled = true;
-    elements["keyboard-button"].disabled = true;
-    elements["keyboard-entry"].hidden = false;
+    setKeypadMode(true);
+    elements["keyboard-button"].hidden = true;
     setRecognitionState("unsure", "model.error");
     refreshLocaleCopy();
     showToast(t("model.toastError"));
