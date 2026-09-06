@@ -1041,6 +1041,7 @@ footer {
   .hero-copy { margin-bottom: 14px; }
   .daily-actions { gap: 10px; }
   .daily-actions .button, .home-play-dock .button { padding-inline: 12px; font-size: 10px; letter-spacing: .06em; }
+  .app-shell.has-home-scroll .hero-copy .daily-actions { visibility: hidden; pointer-events: none; }
   .hero-copy h1 { font-size: clamp(44px, 13.5vw, 62px); line-height: .9; }
   .lede { margin: 22px 0 18px; font-size: 17px; }
   .hero-card { padding: 22px 20px; }

@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "dr-stoeter-gehirnjogging-";
-const CACHE_NAME = `${CACHE_PREFIX}v43`;
+const CACHE_NAME = `${CACHE_PREFIX}v45`;
 const APP_ASSETS = [
   "./",
   "./index.html",
