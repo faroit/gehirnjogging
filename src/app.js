@@ -16,7 +16,7 @@ import { InkRecognizer } from "./ink-recognizer.js";
 const elements = Object.fromEntries([
   "home-screen", "game-screen", "results-screen", "start-button", "daily-easy-dock-button", "daily-normal-dock-button", "home-play-dock", "again-button", "home-button", "share-button", "restart-button", "quit-button",
   "daily-normal-button", "daily-date", "daily-easy-status", "daily-normal-status",
-  "header-best", "progress-text", "timer-text", "equation", "feedback-mark",
+  "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
   "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst",
@@ -66,6 +66,25 @@ function markDailyComplete(mode) {
   document.cookie = `${encodeURIComponent(dailyCookieName(mode))}=1; Max-Age=172800; Path=/; SameSite=Lax`;
 }
 
+function dailySummaryKey(mode) {
+  return `dr_stoeter_daily_score_v1:${dailyDay}:${mode}`;
+}
+
+function readDailySummary(mode) {
+  if (!isDailyMode(mode)) return null;
+  try {
+    const summary = JSON.parse(localStorage.getItem(dailySummaryKey(mode)));
+    return summary?.mode === mode && summary?.day === dailyDay && Number.isFinite(summary.finalSeconds) ? summary : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeDailySummary(summary) {
+  if (!isDailyMode(summary.mode)) return;
+  try { localStorage.setItem(dailySummaryKey(summary.mode), JSON.stringify(summary)); } catch { /* Private mode may block storage. */ }
+}
+
 function modeLabel(mode) {
   return t(`mode.${mode}`);
 }
@@ -79,22 +98,23 @@ function updateHomeModes() {
   const easyComplete = hasCompletedDaily(GAME_MODES.DAILY_EASY);
   const normalComplete = hasCompletedDaily(GAME_MODES.DAILY_NORMAL);
   elements["daily-date"].textContent = t("home.today", { date: formatDailyDate() });
-  const easyLabel = !ready
-    ? t("home.loading")
-    : easyComplete ? t("home.dailyCompleteButton") : t("mode.daily-easy");
-  for (const button of [elements["start-button"], elements["daily-easy-dock-button"]]) {
-    button.querySelector("span").textContent = easyLabel;
-    button.disabled = !ready || easyComplete;
-  }
-  const normalLabel = !ready
-    ? t("home.loading")
-    : normalComplete ? t("home.dailyNormalCompleteButton") : t("mode.daily-normal");
-  for (const button of [elements["daily-normal-button"], elements["daily-normal-dock-button"]]) {
-    button.querySelector("span").textContent = normalLabel;
-    button.disabled = !ready || normalComplete;
-  }
-  elements["daily-easy-status"].textContent = easyComplete ? t("home.dailyComplete") : t("home.dailyReady");
-  elements["daily-normal-status"].textContent = normalComplete ? t("home.dailyComplete") : t("home.dailyReady");
+  const updateDailyAction = (mode, complete, buttonIds, statusId, completeLabel) => {
+    const summary = readDailySummary(mode);
+    const label = !ready
+      ? t("home.loading")
+      : summary ? t("home.dailyScore", { mode: modeLabel(mode), score: formatSeconds(summary.finalSeconds) })
+        : complete ? t(completeLabel) : modeLabel(mode);
+    for (const id of buttonIds) {
+      const button = elements[id];
+      button.querySelector("span").textContent = label;
+      button.disabled = !ready || (complete && !summary);
+      button.classList.toggle("is-complete", Boolean(summary));
+      button.setAttribute("aria-label", summary ? t("home.dailyScoreShare", { mode: modeLabel(mode), score: formatSeconds(summary.finalSeconds) }) : label);
+    }
+    elements[statusId].textContent = summary ? t("home.dailyShare") : complete ? t("home.dailyComplete") : t("home.dailyReady");
+  };
+  updateDailyAction(GAME_MODES.DAILY_EASY, easyComplete, ["start-button", "daily-easy-dock-button"], "daily-easy-status", "home.dailyCompleteButton");
+  updateDailyAction(GAME_MODES.DAILY_NORMAL, normalComplete, ["daily-normal-button", "daily-normal-dock-button"], "daily-normal-status", "home.dailyNormalCompleteButton");
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
     button.disabled = !ready;
   });
@@ -124,11 +144,6 @@ function writeBest(value) {
 
 function formatSeconds(seconds, precision = 1) {
   return t("time.seconds", { value: formatDecimal(locale, seconds, precision) });
-}
-
-function updateBestLabel() {
-  const best = readBest();
-  elements["header-best"].textContent = best ? formatSeconds(best) : "—";
 }
 
 function showScreen(id) {
@@ -352,11 +367,13 @@ function finishGame() {
   const previousBest = readBest();
   const isBest = !previousBest || finalSeconds < previousBest;
   if (isBest) writeBest(finalSeconds);
-  updateBestLabel();
 
   const pace = paceFor(finalSeconds);
-  if (isDailyMode(activeMode)) markDailyComplete(activeMode);
   latestSummary = { rawSeconds, finalSeconds, previousBest, isBest, pace, mistakes, mode: activeMode, day: dailyDay };
+  if (isDailyMode(activeMode)) {
+    markDailyComplete(activeMode);
+    writeDailySummary(latestSummary);
+  }
   renderResults(latestSummary);
   elements["again-button"].hidden = isDailyMode(activeMode);
   updateHomeModes();
@@ -382,7 +399,6 @@ function renderResults({ rawSeconds, finalSeconds, previousBest, isBest, pace, m
 }
 
 function refreshLocaleCopy() {
-  updateBestLabel();
   updateHomeModes();
 
   setRecognitionState(recognitionSnapshot.state, recognitionSnapshot.messageKey, recognitionSnapshot.parameters);
@@ -446,16 +462,15 @@ async function copyText(text) {
   return copied;
 }
 
-async function shareResult() {
-  if (!latestSummary) return;
-  const clipboardText = createShareText(latestSummary);
+async function shareSummary(summary) {
+  const clipboardText = createShareText(summary);
   const copyPromise = copyText(clipboardText);
 
   if (navigator.share) {
     try {
       await navigator.share({
         title: t("meta.title"),
-        text: createShareText(latestSummary, { includeUrl: false }),
+        text: createShareText(summary, { includeUrl: false }),
         url: SHARE_URL,
       });
       const copied = await copyPromise;
@@ -468,6 +483,16 @@ async function shareResult() {
 
   const copied = await copyPromise;
   showToast(copied ? t("share.copied") : t("share.copyFailed"));
+}
+
+function shareResult() {
+  if (latestSummary) return shareSummary(latestSummary);
+}
+
+function handleDailyAction(mode) {
+  const summary = readDailySummary(mode);
+  if (summary) return shareSummary(summary);
+  return startGame(mode);
 }
 
 function currentFullscreenElement() {
@@ -507,11 +532,11 @@ async function toggleFullscreen() {
 }
 
 function bindUi() {
-  elements["start-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_EASY));
-  elements["daily-easy-dock-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_EASY));
-  elements["daily-normal-dock-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_NORMAL));
+  elements["start-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_EASY));
+  elements["daily-easy-dock-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_EASY));
+  elements["daily-normal-dock-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_NORMAL));
   elements["again-button"].addEventListener("click", startGame);
-  elements["daily-normal-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_NORMAL));
+  elements["daily-normal-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_NORMAL));
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
     button.addEventListener("click", () => startGame(button.dataset.gameMode));
   });
@@ -568,7 +593,6 @@ async function initialise() {
   setLocale(locale, { remember: false });
   bindUi();
   updateFullscreenButton();
-  updateBestLabel();
   try {
     const model = await DigitModel.load("./public/model/digits-cnn.bin");
     recognizer = new InkRecognizer({
