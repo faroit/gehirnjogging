@@ -10,7 +10,7 @@ const elements = Object.fromEntries([
   "progress-bar", "recognition-label", "recognition-state", "ink-canvas", "canvas-guide",
   "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "result-rank", "result-burst",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
-  "language-select",
+  "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
 
 let locale = initialLocale();
@@ -236,6 +236,7 @@ function refreshLocaleCopy() {
   }
 
   setRecognitionState(recognitionSnapshot.state, recognitionSnapshot.messageKey, recognitionSnapshot.parameters);
+  updateFullscreenButton();
   recognizer?.refreshLocale();
   if (latestSummary) renderResults(latestSummary);
 }
@@ -253,6 +254,42 @@ function showToast(message) {
   elements.toast.textContent = message;
   elements.toast.classList.add("is-visible");
   toastTimer = setTimeout(() => elements.toast.classList.remove("is-visible"), 1800);
+}
+
+function currentFullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+
+function updateFullscreenButton() {
+  const active = Boolean(currentFullscreenElement());
+  const label = t(active ? "fullscreen.exit" : "fullscreen.enter");
+  elements["fullscreen-button"].classList.toggle("is-active", active);
+  elements["fullscreen-button"].setAttribute("aria-label", label);
+  elements["fullscreen-button"].setAttribute("aria-pressed", String(active));
+  elements["fullscreen-button"].title = label;
+  requestAnimationFrame(() => recognizer?.resize());
+}
+
+async function toggleFullscreen() {
+  const root = document.documentElement;
+  try {
+    if (currentFullscreenElement()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (!exit) throw new Error("Fullscreen exit is unavailable");
+      await exit.call(document);
+    } else {
+      const enter = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (!enter) {
+        showToast(t("fullscreen.unavailable"));
+        return;
+      }
+      await enter.call(root);
+    }
+  } catch (error) {
+    console.warn("Fullscreen mode is unavailable", error);
+    showToast(t("fullscreen.unavailable"));
+  }
+  updateFullscreenButton();
 }
 
 function bindUi() {
@@ -286,14 +323,18 @@ function bindUi() {
     submitAnswer(value);
   });
   window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && acceptingAnswer) recognizer?.clear();
+    if (event.key === "Escape" && acceptingAnswer && !currentFullscreenElement()) recognizer?.clear();
   });
   elements["language-select"].addEventListener("change", (event) => setLocale(event.target.value));
+  elements["fullscreen-button"].addEventListener("click", toggleFullscreen);
+  document.addEventListener("fullscreenchange", updateFullscreenButton);
+  document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
 }
 
 async function initialise() {
   setLocale(locale, { remember: false });
   bindUi();
+  updateFullscreenButton();
   updateBestLabel();
   try {
     const model = await DigitModel.load("./public/model/digits-cnn.bin");
