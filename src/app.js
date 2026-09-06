@@ -14,7 +14,7 @@ import { applyDocumentTranslations, formatDecimal, initialLocale, normaliseLocal
 import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
-  "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button", "share-button", "restart-button", "quit-button",
+  "home-screen", "game-screen", "results-screen", "start-button", "daily-easy-dock-button", "home-play-dock", "again-button", "home-button", "share-button", "restart-button", "quit-button",
   "daily-normal-button", "daily-tab", "training-tab", "daily-mode-panel", "training-mode-panel", "daily-date", "daily-easy-status", "daily-normal-status",
   "header-best", "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
@@ -23,6 +23,7 @@ const elements = Object.fromEntries([
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
   "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
+const appShell = document.querySelector(".app-shell");
 
 let locale = initialLocale();
 let recognizer;
@@ -88,16 +89,27 @@ function updateHomeModes() {
   const easyComplete = hasCompletedDaily(GAME_MODES.DAILY_EASY);
   const normalComplete = hasCompletedDaily(GAME_MODES.DAILY_NORMAL);
   elements["daily-date"].textContent = t("home.today", { date: formatDailyDate() });
-  elements["start-button"].querySelector("span").textContent = !ready
+  const easyLabel = !ready
     ? t("home.loading")
     : easyComplete ? t("home.dailyCompleteButton") : t("mode.daily-easy");
-  elements["start-button"].disabled = !ready || easyComplete;
+  for (const button of [elements["start-button"], elements["daily-easy-dock-button"]]) {
+    button.querySelector("span").textContent = easyLabel;
+    button.disabled = !ready || easyComplete;
+  }
   elements["daily-easy-status"].textContent = easyComplete ? t("home.dailyComplete") : t("home.dailyReady");
   elements["daily-normal-button"].disabled = !ready || normalComplete;
   elements["daily-normal-status"].textContent = normalComplete ? t("home.dailyComplete") : t("home.dailyReady");
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
     button.disabled = !ready;
   });
+}
+
+function updateHomeScrollDock() {
+  const homeActive = elements["home-screen"].classList.contains("is-active");
+  const visible = homeActive && elements["home-screen"].scrollTop > 72;
+  appShell.classList.toggle("has-home-scroll", visible);
+  elements["home-play-dock"].setAttribute("aria-hidden", String(!visible));
+  elements["daily-easy-dock-button"].tabIndex = visible ? 0 : -1;
 }
 
 function readBest() {
@@ -130,7 +142,11 @@ function showScreen(id) {
   }
   const next = document.getElementById(id);
   next.hidden = false;
-  requestAnimationFrame(() => requestAnimationFrame(() => next.classList.add("is-active")));
+  if (id !== "home-screen") updateHomeScrollDock();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    next.classList.add("is-active");
+    updateHomeScrollDock();
+  }));
 }
 
 function setRecognitionState(state, messageKey, parameters = {}) {
@@ -495,6 +511,7 @@ async function toggleFullscreen() {
 
 function bindUi() {
   elements["start-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_EASY));
+  elements["daily-easy-dock-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_EASY));
   elements["again-button"].addEventListener("click", startGame);
   elements["daily-normal-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_NORMAL));
   elements["daily-tab"].addEventListener("click", () => setModeTab("daily"));
@@ -546,6 +563,7 @@ function bindUi() {
   });
   elements["language-select"].addEventListener("change", (event) => setLocale(event.target.value));
   elements["fullscreen-button"].addEventListener("click", toggleFullscreen);
+  elements["home-screen"].addEventListener("scroll", updateHomeScrollDock, { passive: true });
   document.addEventListener("fullscreenchange", updateFullscreenButton);
   document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
 }

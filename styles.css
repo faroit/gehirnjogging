@@ -256,8 +256,33 @@ main {
   grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.75fr);
   align-items: center;
   gap: clamp(48px, 8vw, 130px);
-  padding: 6vh 4vw 5vh;
+  padding: 6vh 4vw max(112px, 5vh);
+  align-self: stretch;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(20, 48, 92, .32) transparent;
+  scrollbar-width: thin;
 }
+
+.screen--home::-webkit-scrollbar { width: 8px; }
+.screen--home::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: rgba(20, 48, 92, .32); background-clip: padding-box; }
+
+.home-play-dock {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  width: min(calc(100% - 40px), 300px);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, calc(100% + 28px));
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(.22,.8,.28,1);
+}
+
+.home-play-dock .button { width: 100%; }
+.app-shell.has-home-scroll .home-play-dock { pointer-events: auto; opacity: 1; transform: translate(-50%, 0); }
 
 .eyebrow,
 .ink-label {
@@ -974,7 +999,8 @@ footer {
 @keyframes prediction-pop { 50% { transform: rotate(-2deg) scale(1.08); } }
 @media (max-width: 850px) {
   .app-shell { padding-block: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-bottom)); }
-  .screen--home { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 20px; height: 100%; padding: 18px 0; }
+  .screen--home { display: block; height: 100%; padding: 18px 0 max(104px, env(safe-area-inset-bottom)); }
+  .hero-copy { margin-bottom: 20px; }
   .hero-card { width: 100%; min-height: auto; transform: rotate(0); }
   .screen--game { height: 100%; }
   .game-grid { grid-template-columns: 1fr; grid-template-rows: minmax(180px, .72fr) minmax(0, 1.28fr); height: 100%; margin: 0; box-shadow: none; }
@@ -999,10 +1025,11 @@ footer {
   .game-meta { gap: 8px; }
   .game-meta__controls { gap: 5px; }
   .game-meta__controls .button--game-control { padding-inline: 7px; font-size: 8px; }
-  .screen--home { gap: 14px; padding: 12px 0; }
+  .screen--home { padding: 12px 0 max(96px, env(safe-area-inset-bottom)); }
+  .hero-copy { margin-bottom: 14px; }
   .hero-copy h1 { font-size: clamp(44px, 13.5vw, 62px); line-height: .9; }
   .lede { margin: 22px 0 18px; font-size: 17px; }
-  .hero-card { padding: 22px 20px; overflow: hidden; }
+  .hero-card { padding: 22px 20px; }
   .mode-card { gap: 14px; }
   .mode-option { padding: 11px 13px; }
   .mode-option > span { font-size: 20px; }
