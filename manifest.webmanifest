@@ -1,6 +1,6 @@
 {
-  "name": "Dr. Stöter's Gehirnjogging",
-  "short_name": "Gehirnjogging",
+  "name": "Dr. Stöter's Brain Training",
+  "short_name": "Brain Training",
   "description": "A private, offline-first 20-question arithmetic sprint with on-device handwriting recognition.",
   "start_url": "./",
   "display": "standalone",
