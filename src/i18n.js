@@ -21,7 +21,7 @@ const messages = {
     "brand.tagline": "Brain Training",
     "best.label": "Personal best",
     "home.eyebrow": "Today's challenge",
-    "home.title": "Keep your<br /><em>brain</em> sharp<br />with mental math!",
+    "home.title": "Keep your<br /><em>brain</em> sharp.",
     "home.lede": "One shared challenge every day. Twenty sums. One official time.",
     "home.loading": "Loading the pen…",
     "home.start": "Let's go!",
