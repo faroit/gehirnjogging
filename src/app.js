@@ -5,7 +5,7 @@ import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
   "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button", "share-button",
-  "header-best", "model-note", "progress-text", "timer-text", "equation", "feedback-mark",
+  "header-best", "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
   "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst",
@@ -258,17 +258,13 @@ function renderResults({ rawSeconds, finalSeconds, previousBest, isBest, pace, m
 function refreshLocaleCopy() {
   updateBestLabel();
   const startLabel = elements["start-button"].querySelector("span");
-  const modelCopy = elements["model-note"].querySelector("[data-model-copy]");
 
   if (modelState === "ready") {
     startLabel.textContent = t("home.start");
-    modelCopy.textContent = t("model.ready", { accuracy: formatDecimal(locale, modelAccuracy * 100, 1) });
   } else if (modelState === "error") {
     startLabel.textContent = t("home.start");
-    modelCopy.textContent = t("model.error");
   } else {
     startLabel.textContent = t("home.loading");
-    modelCopy.textContent = t("home.modelPreparing");
   }
 
   setRecognitionState(recognitionSnapshot.state, recognitionSnapshot.messageKey, recognitionSnapshot.parameters);
@@ -456,7 +452,6 @@ async function initialise() {
     elements["start-button"].disabled = false;
     modelState = "ready";
     modelAccuracy = model.testAccuracy;
-    elements["model-note"].classList.add("is-ready");
     refreshLocaleCopy();
   } catch (error) {
     console.error(error);

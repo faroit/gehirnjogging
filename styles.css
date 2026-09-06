@@ -61,7 +61,7 @@ a:focus-visible {
 .app-shell {
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr;
   width: min(100%, 1480px);
   height: 100vh;
   height: 100dvh;
@@ -901,7 +901,6 @@ footer {
 @keyframes prediction-pop { 50% { transform: rotate(-2deg) scale(1.08); } }
 @media (max-width: 850px) {
   .app-shell { padding-block: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-bottom)); }
-  footer { display: none; }
   .screen--home { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 20px; height: 100%; padding: 18px 0; }
   .hero-card { width: 100%; min-height: auto; transform: rotate(0); }
   .hero-card__number { position: absolute; top: -50px; right: 25px; z-index: 0; font-size: 130px; opacity: .12; }
@@ -926,7 +925,7 @@ footer {
   .record strong { padding-inline: 8px; }
   .record span { display: none; }
   .screen--home { gap: 14px; padding: 12px 0; }
-  .hero-copy h1 { font-size: clamp(58px, 20vw, 88px); }
+  .hero-copy h1 { font-size: clamp(44px, 13.5vw, 62px); line-height: .9; }
   .lede { margin: 22px 0 18px; font-size: 17px; }
   .hero-card { padding: 22px 20px; overflow: hidden; }
   .problem-panel, .ink-panel { padding: 24px 20px; }
