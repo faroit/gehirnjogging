@@ -15,7 +15,7 @@ import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
   "home-screen", "game-screen", "results-screen", "start-button", "daily-easy-dock-button", "daily-normal-dock-button", "home-play-dock", "again-button", "home-button", "share-button", "restart-button", "quit-button",
-  "daily-normal-button", "daily-date", "daily-easy-status", "daily-normal-status",
+  "daily-normal-button", "daily-date",
   "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
@@ -98,7 +98,7 @@ function updateHomeModes() {
   const easyComplete = hasCompletedDaily(GAME_MODES.DAILY_EASY);
   const normalComplete = hasCompletedDaily(GAME_MODES.DAILY_NORMAL);
   elements["daily-date"].textContent = t("home.today", { date: formatDailyDate() });
-  const updateDailyAction = (mode, complete, buttonIds, statusId, completeLabel) => {
+  const updateDailyAction = (mode, complete, buttonIds, completeLabel) => {
     const summary = readDailySummary(mode);
     const label = !ready
       ? t("home.loading")
@@ -111,10 +111,9 @@ function updateHomeModes() {
       button.classList.toggle("is-complete", Boolean(summary));
       button.setAttribute("aria-label", summary ? t("home.dailyScoreShare", { mode: modeLabel(mode), score: formatSeconds(summary.finalSeconds) }) : label);
     }
-    elements[statusId].textContent = summary ? t("home.dailyShare") : complete ? t("home.dailyComplete") : t("home.dailyReady");
   };
-  updateDailyAction(GAME_MODES.DAILY_EASY, easyComplete, ["start-button", "daily-easy-dock-button"], "daily-easy-status", "home.dailyCompleteButton");
-  updateDailyAction(GAME_MODES.DAILY_NORMAL, normalComplete, ["daily-normal-button", "daily-normal-dock-button"], "daily-normal-status", "home.dailyNormalCompleteButton");
+  updateDailyAction(GAME_MODES.DAILY_EASY, easyComplete, ["start-button", "daily-easy-dock-button"], "home.dailyCompleteButton");
+  updateDailyAction(GAME_MODES.DAILY_NORMAL, normalComplete, ["daily-normal-button", "daily-normal-dock-button"], "home.dailyNormalCompleteButton");
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
     button.disabled = !ready;
   });
