@@ -154,6 +154,7 @@ function showScreen(id) {
   }
   const next = document.getElementById(id);
   next.hidden = false;
+  if (id === "results-screen") next.scrollTop = 0;
   if (id !== "home-screen") updateHomeScrollDock();
   requestAnimationFrame(() => requestAnimationFrame(() => {
     next.classList.add("is-active");

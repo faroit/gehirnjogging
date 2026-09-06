@@ -881,8 +881,19 @@ main {
   gap: clamp(22px, 4vw, 62px);
   align-items: stretch;
   max-width: 1120px;
-  margin: 4vh auto;
+  align-self: stretch;
+  max-height: none;
+  margin: 0 auto;
+  padding: 4vh 0 max(96px, 4vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(20, 48, 92, .32) transparent;
+  scrollbar-width: thin;
 }
+
+.screen--results::-webkit-scrollbar { width: 8px; }
+.screen--results::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: rgba(20, 48, 92, .32); background-clip: padding-box; }
 
 .results-card {
   position: relative;
@@ -1010,8 +1021,8 @@ footer {
   .problem-panel { min-height: 0; border-radius: 22px 22px 0 0; box-shadow: 0 18px 42px rgba(52,42,24,.1); }
   .problem-stage { min-height: 0; }
   .ink-panel { min-height: 0; border: 0; border-top: 1px solid var(--line); border-radius: 0 0 22px 22px; box-shadow: 0 18px 42px rgba(52,42,24,.1); }
-  .screen--results { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 18px; height: 100%; margin: 0; padding: 16px 0; }
-  .run-log { align-self: stretch; max-height: none; overflow: auto; }
+  .screen--results { display: block; height: 100%; margin: 0; padding: 16px 0 max(104px, env(safe-area-inset-bottom)); }
+  .run-log { align-self: stretch; max-height: none; margin-top: 18px; overflow: visible; }
 }
 
 @media (max-width: 520px) {
@@ -1050,7 +1061,7 @@ footer {
   #keyboard-button svg { width: 18px; }
   .score-block__main strong { font-size: clamp(68px, 20vw, 92px); }
   .score-breakdown { grid-template-columns: 1fr; }
-  .screen--results { grid-template-rows: auto minmax(100px, 1fr); gap: 12px; padding: 10px 0; }
+  .screen--results { padding: 10px 0 max(96px, env(safe-area-inset-bottom)); }
   .results-card { padding: 22px; }
   .results-card h1 { font-size: clamp(44px, 13vw, 58px); }
   .score-block { gap: 12px; margin-top: 24px; padding: 16px 0; }
