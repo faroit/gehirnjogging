@@ -606,7 +606,9 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 
 .answer-entry {
   display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
   min-height: 0;
   margin: 24px 0 20px;
 }
@@ -617,7 +619,7 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
   min-height: 0;
   overflow: hidden;
   border: 2px solid var(--ink);
-  border-radius: 20px 0 0 20px;
+  border-radius: 20px;
   background:
     repeating-linear-gradient(0deg, rgba(255,255,255,.92) 0 43px, rgba(77,112,255,.11) 43px 44px),
     #ffffff;
@@ -683,21 +685,19 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 .ink-actions { display: flex; align-items: center; gap: 10px; }
 .ink-actions .button { font-size: 9px; }
 .answer-entry .button--submit {
-  align-self: stretch;
-  min-width: 0;
-  min-height: 0;
-  padding: 20px 14px;
+  width: 100%;
+  min-height: 54px;
+  padding: 12px 20px;
   border: 2px solid var(--ink);
-  border-left: 0;
-  border-radius: 0 20px 20px 0;
-  flex-direction: column;
-  line-height: 1.35;
+  border-radius: 999px;
+  flex-direction: row;
+  line-height: 1;
   text-align: center;
   color: #fff;
   background: var(--coral);
   box-shadow: 0 5px 0 #c83256, 0 10px 18px rgba(217, 59, 95, .2);
 }
-.answer-entry .button--submit svg { width: 30px; height: 30px; }
+.answer-entry .button--submit svg { width: 22px; height: 22px; }
 .answer-entry .button--submit:disabled {
   color: rgba(20, 48, 92, .5);
   background: #b8c2ca;
@@ -705,7 +705,7 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
   opacity: 1;
 }
 .answer-entry .button--submit:hover:not(:disabled) { background: var(--coral-dark); transform: none; }
-.answer-entry .button--submit:active:not(:disabled) { transform: translateX(2px); }
+.answer-entry .button--submit:active:not(:disabled) { transform: translateY(2px); }
 
 .number-pad {
   display: grid;
@@ -919,15 +919,9 @@ footer {
   .problem-panel, .ink-panel { padding: 24px 20px; }
   .equation { font-size: clamp(58px, 20vw, 86px); }
   .problem-hint { display: none; }
-  .answer-entry { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; margin: 14px 0 12px; }
+  .answer-entry { margin: 14px 0 12px; }
   .canvas-wrap { min-height: 0; border-radius: 20px; }
   .ink-actions .button { padding: 0 12px; letter-spacing: .05em; }
-  .answer-entry .button--submit {
-    min-height: 54px;
-    border: 2px solid var(--ink);
-    border-radius: 999px;
-    flex-direction: row;
-  }
   .number-pad { margin-block: 10px; }
   .number-pad__keys { gap: 7px; }
   .number-pad__keys button { border-radius: 13px 16px 12px 15px; }
