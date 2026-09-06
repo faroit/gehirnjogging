@@ -47,7 +47,6 @@ let keypadMode = false;
 let keypadDigits = "";
 let activeMode = GAME_MODES.DAILY_EASY;
 const dailyDay = localDayKey();
-const SHARE_URL = "https://faroit.com/gehirnjogging/";
 
 const t = (key, parameters) => translate(locale, key, parameters);
 
@@ -463,16 +462,12 @@ async function copyText(text) {
 }
 
 async function shareSummary(summary) {
-  const clipboardText = createShareText(summary);
+  const clipboardText = createShareText(summary, { includeUrl: false });
   const copyPromise = copyText(clipboardText);
 
   if (navigator.share) {
     try {
-      await navigator.share({
-        title: t("meta.title"),
-        text: createShareText(summary, { includeUrl: false }),
-        url: SHARE_URL,
-      });
+      await navigator.share({ text: clipboardText });
       const copied = await copyPromise;
       showToast(copied ? t("share.sharedCopied") : t("share.shared"));
       return;
