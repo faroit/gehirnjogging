@@ -120,7 +120,7 @@ function configurePen(context, lineWidth, color) {
 }
 
 export class InkRecognizer {
-  constructor({ canvas, guide, model, translate, onRead, onState, onAvailability = () => {} }) {
+  constructor({ canvas, guide, model, translate, onRead, onState, onPrediction = () => {}, onAvailability = () => {} }) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!this.context) throw new Error("Canvas drawing is not available");
@@ -129,6 +129,7 @@ export class InkRecognizer {
     this.translate = translate;
     this.onRead = onRead;
     this.onState = onState;
+    this.onPrediction = onPrediction;
     this.onAvailability = onAvailability;
     this.strokes = [];
     this.activeStroke = null;
@@ -333,6 +334,7 @@ export class InkRecognizer {
     this.guide.classList.remove("has-ink");
     this.previewResult = null;
     this.setSubmitAvailable(false);
+    this.onPrediction(null);
     this.onState("ready", "recognition.writeFull");
   }
 
@@ -349,6 +351,7 @@ export class InkRecognizer {
     this.expectedDigits = Math.max(1, Math.min(2, count));
     this.previewResult = null;
     this.setSubmitAvailable(false);
+    this.onPrediction(null);
     this.canvas.setAttribute(
       "aria-label",
       this.expectedDigits === 2
@@ -380,18 +383,22 @@ export class InkRecognizer {
     }
 
     let result;
+    let prediction;
     let hasDistinctDigits = true;
     if (this.expectedDigits === 2) {
       const candidates = this.findTwoDigitCandidates().filter((candidate) => candidate.distinct);
       hasDistinctDigits = candidates.length > 0;
       result = hasDistinctDigits ? this.recogniseTwoDigits(candidates) : null;
+      prediction = result || this.recogniseSegments(this.findExpectedSegments(), 1);
     } else {
       result = this.recogniseSegments(this.findExpectedSegments());
+      prediction = result;
     }
 
     const ready = isRecognitionReady(result, this.expectedDigits, hasDistinctDigits);
     this.previewResult = ready ? result : null;
     this.setSubmitAvailable(ready);
+    this.onPrediction(prediction?.digits ?? null, { complete: ready });
     this.onState(
       ready ? "ready" : "writing",
       ready
@@ -439,8 +446,8 @@ export class InkRecognizer {
     this.onRead(value);
   }
 
-  recogniseSegments(segments) {
-    if (segments.length < this.expectedDigits) return null;
+  recogniseSegments(segments, requiredDigits = this.expectedDigits) {
+    if (segments.length < requiredDigits) return null;
     let digits = "";
     let confidence = 1;
     let margin = 1;

@@ -7,7 +7,7 @@ const elements = Object.fromEntries([
   "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button",
   "header-best", "model-note", "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
-  "progress-bar", "recognition-label", "recognition-state", "ink-canvas", "canvas-guide",
+  "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview",
   "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "result-rank", "result-burst",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
   "language-select", "fullscreen-button",
@@ -30,6 +30,7 @@ let modelState = "loading";
 let modelAccuracy = 0;
 let latestSummary = null;
 let recognitionSnapshot = { state: "ready", messageKey: "recognition.writeLarge", parameters: {} };
+let predictionSnapshot = { digits: null, complete: false };
 
 const t = (key, parameters) => translate(locale, key, parameters);
 
@@ -71,13 +72,17 @@ function setRecognitionState(state, messageKey, parameters = {}) {
   const container = elements["recognition-state"];
   container.className = `recognition-state${state === "reading" || state === "writing" ? " is-reading" : state === "unsure" ? " is-unsure" : ""}`;
   container.querySelector("b").textContent = t(`recognition.${state}`);
-  const defaults = {
-    ready: "recognition.writeLarge",
-    writing: "recognition.keepGoing",
-    reading: "recognition.readingInk",
-    unsure: "recognition.writeFull",
-  };
-  elements["recognition-label"].textContent = t(messageKey || defaults[state] || defaults.ready, parameters);
+}
+
+function setPrediction(digits, { complete = false } = {}) {
+  predictionSnapshot = { digits, complete };
+  const preview = elements["prediction-preview"];
+  const visible = digits !== null && digits !== undefined && String(digits).length > 0;
+  preview.hidden = !visible;
+  preview.classList.toggle("is-complete", visible && complete);
+  preview.textContent = visible ? String(digits) : "";
+  if (visible) preview.setAttribute("aria-label", t("aria.prediction", { value: digits }));
+  else preview.removeAttribute("aria-label");
 }
 
 function updateTimer() {
@@ -236,6 +241,7 @@ function refreshLocaleCopy() {
   }
 
   setRecognitionState(recognitionSnapshot.state, recognitionSnapshot.messageKey, recognitionSnapshot.parameters);
+  setPrediction(predictionSnapshot.digits, { complete: predictionSnapshot.complete });
   updateFullscreenButton();
   recognizer?.refreshLocale();
   if (latestSummary) renderResults(latestSummary);
@@ -345,6 +351,7 @@ async function initialise() {
       translate: t,
       onRead: submitAnswer,
       onState: setRecognitionState,
+      onPrediction: setPrediction,
       onAvailability: (available) => {
         elements["submit-answer-button"].disabled = !available;
       },

@@ -95,7 +95,6 @@
               <div class="ink-panel__topline">
                 <div>
                   <span class="ink-label" data-i18n="game.yourAnswer">Your answer</span>
-                  <strong id="recognition-label" data-i18n="recognition.writeLarge">Write large</strong>
                 </div>
                 <div class="recognition-state" id="recognition-state"><span></span><b data-i18n="recognition.ready">Ready</b></div>
               </div>
@@ -106,6 +105,7 @@
                   <div class="canvas-guide" id="canvas-guide" aria-hidden="true">
                     <span data-i18n="game.writeHere">write here</span>
                   </div>
+                  <output class="prediction-preview" id="prediction-preview" aria-live="polite" hidden></output>
                 </div>
                 <button class="button button--submit" id="submit-answer-button" disabled>
                   <span data-i18n="game.submit">Submit answer</span>
