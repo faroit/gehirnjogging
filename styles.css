@@ -1012,6 +1012,7 @@ footer {
 @keyframes prediction-pop { 50% { transform: rotate(-2deg) scale(1.08); } }
 @media (max-width: 850px) {
   .app-shell { padding-block: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-bottom)); }
+  .fullscreen-button { display: none; }
   .screen--home { display: block; height: 100%; padding: 18px 0 max(104px, env(safe-area-inset-bottom)); }
   .hero-copy { margin-bottom: 20px; }
   .daily-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 520px; }
