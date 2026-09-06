@@ -8,6 +8,6 @@
   "theme_color": "#4d70ff",
   "orientation": "any",
   "icons": [
-    { "src": "./public/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "./public/dr-stoeter-mascot.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
   ]
 }

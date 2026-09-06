@@ -1,11 +1,11 @@
 const CACHE_PREFIX = "dr-stoeter-gehirnjogging-";
-const CACHE_NAME = `${CACHE_PREFIX}v12`;
+const CACHE_NAME = `${CACHE_PREFIX}v13`;
 const APP_ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./manifest.webmanifest",
-  "./public/icon.svg",
+  "./public/dr-stoeter-mascot.png",
   "./public/model/digits-cnn.bin",
   "./public/model/MNIST-CNN-LICENSE.txt",
   "./src/app.js",

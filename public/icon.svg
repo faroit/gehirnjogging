@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#4d70ff"/>
-  <path d="M91 156c44-52 95-70 152-43 41 20 70 19 112 0 25-11 48 0 61 21 20 34 11 78-22 99-37 24-66 64-86 118-16 43-46 66-83 58-39-8-45-42-27-73 15-26 29-45 43-57-49 5-94 23-132 55-30 25-68 4-53-33 21-51 61-88 121-111-34 1-57 10-79 31-20 19-48-17-27-65Z" fill="#ffd84d"/>
-  <text x="256" y="318" text-anchor="middle" font-family="ui-rounded,sans-serif" font-size="202" font-weight="800" fill="#14305c">20</text>
-</svg>
