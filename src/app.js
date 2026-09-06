@@ -1,10 +1,21 @@
 import { DigitModel } from "./digit-model.js";
-import { calculateScore, createProblems, MISTAKE_PENALTY_SECONDS, paceFor, TOTAL_PROBLEMS } from "./game-core.js";
+import {
+  calculateScore,
+  createDailyProblems,
+  createTrainingProblems,
+  GAME_MODES,
+  isDailyMode,
+  localDayKey,
+  MISTAKE_PENALTY_SECONDS,
+  paceFor,
+  TOTAL_PROBLEMS,
+} from "./game-core.js";
 import { applyDocumentTranslations, formatDecimal, initialLocale, normaliseLocale, rememberLocale, translate } from "./i18n.js";
 import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
   "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button", "share-button", "restart-button", "quit-button",
+  "daily-normal-button", "daily-tab", "training-tab", "daily-mode-panel", "training-mode-panel", "daily-date", "daily-easy-status", "daily-normal-status",
   "header-best", "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
@@ -33,9 +44,61 @@ let recognitionSnapshot = { state: "ready", messageKey: "recognition.writeLarge"
 let predictionSnapshot = { digits: null, complete: false };
 let keypadMode = false;
 let keypadDigits = "";
+let activeMode = GAME_MODES.DAILY_EASY;
+const dailyDay = localDayKey();
 const SHARE_URL = "https://faroit.com/gehirnjogging/";
 
 const t = (key, parameters) => translate(locale, key, parameters);
+
+function dailyCookieName(mode) {
+  return `dr_stoeter_daily_v1_${dailyDay}_${mode}`;
+}
+
+function hasCompletedDaily(mode) {
+  if (!isDailyMode(mode)) return false;
+  const target = `${encodeURIComponent(dailyCookieName(mode))}=1`;
+  return document.cookie.split(";").some((cookie) => cookie.trim() === target);
+}
+
+function markDailyComplete(mode) {
+  if (!isDailyMode(mode)) return;
+  document.cookie = `${encodeURIComponent(dailyCookieName(mode))}=1; Max-Age=172800; Path=/; SameSite=Lax`;
+}
+
+function modeLabel(mode) {
+  return t(`mode.${mode}`);
+}
+
+function formatDailyDate() {
+  return new Intl.DateTimeFormat(locale, { weekday: "long", month: "short", day: "numeric" }).format(new Date());
+}
+
+function setModeTab(tab) {
+  const daily = tab === "daily";
+  elements["daily-tab"].classList.toggle("is-active", daily);
+  elements["training-tab"].classList.toggle("is-active", !daily);
+  elements["daily-tab"].setAttribute("aria-selected", String(daily));
+  elements["training-tab"].setAttribute("aria-selected", String(!daily));
+  elements["daily-mode-panel"].hidden = !daily;
+  elements["training-mode-panel"].hidden = daily;
+}
+
+function updateHomeModes() {
+  const ready = modelState !== "loading";
+  const easyComplete = hasCompletedDaily(GAME_MODES.DAILY_EASY);
+  const normalComplete = hasCompletedDaily(GAME_MODES.DAILY_NORMAL);
+  elements["daily-date"].textContent = t("home.today", { date: formatDailyDate() });
+  elements["start-button"].querySelector("span").textContent = !ready
+    ? t("home.loading")
+    : easyComplete ? t("home.dailyCompleteButton") : t("mode.daily-easy");
+  elements["start-button"].disabled = !ready || easyComplete;
+  elements["daily-easy-status"].textContent = easyComplete ? t("home.dailyComplete") : t("home.dailyReady");
+  elements["daily-normal-button"].disabled = !ready || normalComplete;
+  elements["daily-normal-status"].textContent = normalComplete ? t("home.dailyComplete") : t("home.dailyReady");
+  document.querySelectorAll("[data-game-mode]").forEach((button) => {
+    button.disabled = !ready;
+  });
+}
 
 function readBest() {
   try {
@@ -159,10 +222,18 @@ function renderProblem() {
   recognizer?.clear();
 }
 
-function startGame() {
+function startGame(mode = activeMode) {
+  if (isDailyMode(mode) && hasCompletedDaily(mode)) {
+    showToast(t("home.dailyAlreadyComplete"));
+    updateHomeModes();
+    return;
+  }
   window.scrollTo({ top: 0, behavior: "auto" });
   cancelAnimationFrame(timerFrame);
-  problems = createProblems();
+  activeMode = mode;
+  problems = isDailyMode(mode)
+    ? createDailyProblems(mode, dailyDay)
+    : createTrainingProblems(mode);
   results = [];
   problemIndex = 0;
   mistakes = 0;
@@ -170,6 +241,7 @@ function startGame() {
   lastTimerTenth = -1;
   acceptingAnswer = false;
   latestSummary = null;
+  elements["restart-button"].hidden = isDailyMode(activeMode);
   setKeypadMode(!recognizer || keypadMode);
   showScreen("game-screen");
   setTimeout(() => {
@@ -193,6 +265,7 @@ function quitGame() {
 }
 
 function restartGame() {
+  if (isDailyMode(activeMode)) return;
   const isActiveRun = runStartedAt && problemIndex < TOTAL_PROBLEMS;
   if (isActiveRun && !confirm(t("confirm.restart"))) return;
   startGame();
@@ -269,8 +342,11 @@ function finishGame() {
   updateBestLabel();
 
   const pace = paceFor(finalSeconds);
-  latestSummary = { rawSeconds, finalSeconds, previousBest, isBest, pace, mistakes };
+  if (isDailyMode(activeMode)) markDailyComplete(activeMode);
+  latestSummary = { rawSeconds, finalSeconds, previousBest, isBest, pace, mistakes, mode: activeMode, day: dailyDay };
   renderResults(latestSummary);
+  elements["again-button"].hidden = isDailyMode(activeMode);
+  updateHomeModes();
   window.scrollTo({ top: 0, behavior: "auto" });
   showScreen("results-screen");
 }
@@ -294,15 +370,7 @@ function renderResults({ rawSeconds, finalSeconds, previousBest, isBest, pace, m
 
 function refreshLocaleCopy() {
   updateBestLabel();
-  const startLabel = elements["start-button"].querySelector("span");
-
-  if (modelState === "ready") {
-    startLabel.textContent = t("home.start");
-  } else if (modelState === "error") {
-    startLabel.textContent = t("home.start");
-  } else {
-    startLabel.textContent = t("home.loading");
-  }
+  updateHomeModes();
 
   setRecognitionState(recognitionSnapshot.state, recognitionSnapshot.messageKey, recognitionSnapshot.parameters);
   setPrediction(predictionSnapshot.digits, { complete: predictionSnapshot.complete });
@@ -330,7 +398,11 @@ function showToast(message) {
 
 function createShareText(summary, { includeUrl = true } = {}) {
   const correct = TOTAL_PROBLEMS - summary.mistakes;
+  const challenge = isDailyMode(summary.mode)
+    ? t("share.dailyChallenge", { mode: modeLabel(summary.mode), day: summary.day })
+    : t("share.trainingChallenge", { mode: modeLabel(summary.mode) });
   const copy = t("share.message", {
+    challenge,
     score: formatSeconds(summary.finalSeconds),
     raw: formatSeconds(summary.rawSeconds),
     correct,
@@ -422,8 +494,14 @@ async function toggleFullscreen() {
 }
 
 function bindUi() {
-  elements["start-button"].addEventListener("click", startGame);
+  elements["start-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_EASY));
   elements["again-button"].addEventListener("click", startGame);
+  elements["daily-normal-button"].addEventListener("click", () => startGame(GAME_MODES.DAILY_NORMAL));
+  elements["daily-tab"].addEventListener("click", () => setModeTab("daily"));
+  elements["training-tab"].addEventListener("click", () => setModeTab("training"));
+  document.querySelectorAll("[data-game-mode]").forEach((button) => {
+    button.addEventListener("click", () => startGame(button.dataset.gameMode));
+  });
   elements["restart-button"].addEventListener("click", restartGame);
   elements["quit-button"].addEventListener("click", quitGame);
   elements["share-button"].addEventListener("click", shareResult);
@@ -475,6 +553,7 @@ function bindUi() {
 async function initialise() {
   setLocale(locale, { remember: false });
   bindUi();
+  setModeTab("daily");
   updateFullscreenButton();
   updateBestLabel();
   try {
@@ -491,14 +570,12 @@ async function initialise() {
         elements["submit-answer-button"].disabled = !available;
       },
     });
-    elements["start-button"].disabled = false;
     modelState = "ready";
     modelAccuracy = model.testAccuracy;
     refreshLocaleCopy();
   } catch (error) {
     console.error(error);
     modelState = "error";
-    elements["start-button"].disabled = false;
     elements["erase-button"].disabled = true;
     elements["submit-answer-button"].disabled = true;
     setKeypadMode(true);
