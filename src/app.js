@@ -345,6 +345,9 @@ async function initialise() {
       translate: t,
       onRead: submitAnswer,
       onState: setRecognitionState,
+      onAvailability: (available) => {
+        elements["submit-answer-button"].disabled = !available;
+      },
     });
     elements["start-button"].disabled = false;
     modelState = "ready";

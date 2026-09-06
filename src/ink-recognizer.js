@@ -45,7 +45,7 @@ export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
   const peak = Math.max(1, ...columns.slice(minX, maxX + 1));
   const candidates = new Map();
 
-  const add = (cut, bonus = 0) => {
+  const add = (cut, bonus = 0, evidence = "valley") => {
     const x = clamp(Math.round(cut), start, end);
     const density = (
       (columns[x - 1] || 0) + columns[x] * 2 + (columns[x + 1] || 0)
@@ -53,7 +53,7 @@ export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
     const centreDistance = Math.abs(x - (minX + maxX) / 2) / (maxX - minX);
     const prior = bonus - density * 0.8 - centreDistance * 0.08;
     const previous = candidates.get(x);
-    if (previous === undefined || prior > previous) candidates.set(x, prior);
+    if (!previous || prior > previous.prior) candidates.set(x, { prior, evidence });
   };
 
   // Blank runs are ideal, but use their centre rather than an arbitrary edge.
@@ -63,7 +63,7 @@ export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
     if (blank && blankStart < 0) blankStart = x;
     if (!blank && blankStart >= 0) {
       const blankEnd = x - 1;
-      add((blankStart + blankEnd) / 2, Math.min(0.28, (blankEnd - blankStart + 1) * 0.025));
+      add((blankStart + blankEnd) / 2, Math.min(0.28, (blankEnd - blankStart + 1) * 0.025), "gap");
       blankStart = -1;
     }
   }
@@ -72,7 +72,7 @@ export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
   for (const strokeCut of strokeCuts) {
     const cut = typeof strokeCut === "number" ? strokeCut : strokeCut.cut;
     const bonus = typeof strokeCut === "number" ? 0.32 : strokeCut.bonus;
-    add(cut, bonus);
+    add(cut, bonus, "stroke");
   }
 
   // Low-ink valleys cover touching digits whose separator is not fully blank.
@@ -82,10 +82,10 @@ export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
     const after = columns[x] + (columns[x + 1] || 0) * 2 + (columns[x + 2] || 0);
     if (density <= before && density <= after) add(x);
   }
-  add((minX + maxX) / 2, -0.08);
+  add((minX + maxX) / 2, -0.08, "fallback");
 
   const ranked = [...candidates.entries()]
-    .map(([cut, prior]) => ({ cut, prior }))
+    .map(([cut, { prior, evidence }]) => ({ cut, prior, evidence }))
     .sort((a, b) => b.prior - a.prior);
   const selected = [];
   for (const candidate of ranked) {
@@ -94,6 +94,12 @@ export function findSplitCandidates(columns, minX, maxX, strokeCuts = []) {
     if (selected.length === MAX_SPLIT_CANDIDATES) break;
   }
   return selected;
+}
+
+export function isRecognitionReady(result, expectedDigits, hasDistinctDigits = true) {
+  if (!result || !Number.isFinite(result.confidence) || !Number.isFinite(result.margin)) return false;
+  if (expectedDigits === 2 && !hasDistinctDigits) return false;
+  return result.confidence >= 0.44 && result.margin >= 0.08;
 }
 
 function makeCanvas(width, height) {
@@ -114,7 +120,7 @@ function configurePen(context, lineWidth, color) {
 }
 
 export class InkRecognizer {
-  constructor({ canvas, guide, model, translate, onRead, onState }) {
+  constructor({ canvas, guide, model, translate, onRead, onState, onAvailability = () => {} }) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!this.context) throw new Error("Canvas drawing is not available");
@@ -123,11 +129,14 @@ export class InkRecognizer {
     this.translate = translate;
     this.onRead = onRead;
     this.onState = onState;
+    this.onAvailability = onAvailability;
     this.strokes = [];
     this.activeStroke = null;
     this.inkBounds = null;
     this.enabled = true;
     this.expectedDigits = 1;
+    this.submitAvailable = false;
+    this.previewResult = null;
     this.canvasRect = { left: 0, top: 0, width: 1, height: 1 };
 
     this.maskCanvas = makeCanvas(MASK_WIDTH, MASK_HEIGHT);
@@ -193,6 +202,8 @@ export class InkRecognizer {
   pointerDown(event) {
     if (!this.enabled || event.button > 0) return;
     this.cacheCanvasRect();
+    this.previewResult = null;
+    this.setSubmitAvailable(false);
     try { this.canvas.setPointerCapture?.(event.pointerId); } catch { /* Synthetic or legacy pointer events may not be capturable. */ }
     const point = this.pointFromEvent(event);
     this.activeStroke = [point];
@@ -219,7 +230,7 @@ export class InkRecognizer {
     this.storePoint(this.pointFromEvent(event), true);
     this.drawStrokeTail(startIndex);
     this.activeStroke = null;
-    this.onState("ready", "recognition.tapSubmit");
+    this.updateReadiness();
   }
 
   storePoint(point, force = false) {
@@ -320,16 +331,24 @@ export class InkRecognizer {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.maskContext.clearRect(0, 0, MASK_WIDTH, MASK_HEIGHT);
     this.guide.classList.remove("has-ink");
+    this.previewResult = null;
+    this.setSubmitAvailable(false);
     this.onState("ready", "recognition.writeFull");
   }
 
   setEnabled(enabled) {
     this.enabled = enabled;
     this.canvas.style.pointerEvents = enabled ? "auto" : "none";
+    if (!enabled) {
+      this.previewResult = null;
+      this.setSubmitAvailable(false);
+    }
   }
 
   setExpectedDigits(count) {
     this.expectedDigits = Math.max(1, Math.min(2, count));
+    this.previewResult = null;
+    this.setSubmitAvailable(false);
     this.canvas.setAttribute(
       "aria-label",
       this.expectedDigits === 2
@@ -339,11 +358,50 @@ export class InkRecognizer {
   }
 
   refreshLocale() {
-    this.setExpectedDigits(this.expectedDigits);
+    this.canvas.setAttribute(
+      "aria-label",
+      this.expectedDigits === 2
+        ? this.translate("aria.canvasTwo")
+        : this.translate("aria.canvasOne"),
+    );
+  }
+
+  setSubmitAvailable(available) {
+    if (this.submitAvailable === available) return;
+    this.submitAvailable = available;
+    this.onAvailability(available);
+  }
+
+  updateReadiness() {
+    if (!this.enabled || this.activeStroke || this.strokes.length === 0) {
+      this.previewResult = null;
+      this.setSubmitAvailable(false);
+      return;
+    }
+
+    let result;
+    let hasDistinctDigits = true;
+    if (this.expectedDigits === 2) {
+      const candidates = this.findTwoDigitCandidates().filter((candidate) => candidate.distinct);
+      hasDistinctDigits = candidates.length > 0;
+      result = hasDistinctDigits ? this.recogniseTwoDigits(candidates) : null;
+    } else {
+      result = this.recogniseSegments(this.findExpectedSegments());
+    }
+
+    const ready = isRecognitionReady(result, this.expectedDigits, hasDistinctDigits);
+    this.previewResult = ready ? result : null;
+    this.setSubmitAvailable(ready);
+    this.onState(
+      ready ? "ready" : "writing",
+      ready
+        ? "recognition.tapSubmit"
+        : this.expectedDigits === 2 ? "recognition.onlyOne" : "recognition.keepWriting",
+    );
   }
 
   submit() {
-    if (!this.enabled) return;
+    if (!this.enabled || !this.submitAvailable) return;
     if (!this.strokes.length) {
       this.onState("unsure", "recognition.empty");
       return;
@@ -359,9 +417,9 @@ export class InkRecognizer {
 
   read() {
     if (!this.enabled || this.strokes.length === 0) return;
-    const result = this.expectedDigits === 2
+    const result = this.previewResult || (this.expectedDigits === 2
       ? this.recogniseTwoDigits()
-      : this.recogniseSegments(this.findExpectedSegments());
+      : this.recogniseSegments(this.findExpectedSegments()));
     if (!result) {
       this.onState("unsure", this.expectedDigits === 2 ? "recognition.onlyOne" : "recognition.keepWriting");
       return;
@@ -369,7 +427,7 @@ export class InkRecognizer {
     const { value, confidence, margin } = result;
 
     // A low-confidence scribble should never cost the player five seconds.
-    if (!Number.isFinite(confidence) || !Number.isFinite(margin) || confidence < 0.44 || margin < 0.08) {
+    if (!isRecognitionReady(result, this.expectedDigits)) {
       this.onState(
         "unsure",
         Number.isFinite(value) ? "recognition.notSureValue" : "recognition.notSure",
@@ -397,8 +455,7 @@ export class InkRecognizer {
     return { value: Number(digits), confidence, margin, score, digits };
   }
 
-  recogniseTwoDigits() {
-    const candidates = this.findTwoDigitCandidates();
+  recogniseTwoDigits(candidates = this.findTwoDigitCandidates()) {
     let best = null;
     for (const candidate of candidates) {
       const result = this.recogniseSegments(candidate.segments);
@@ -458,13 +515,14 @@ export class InkRecognizer {
         this.boundsForMaskRange(minX, dominantSplit - 1, columns, tops, bottoms),
         this.boundsForMaskRange(dominantSplit, maxX, columns, tops, bottoms),
       ].filter(Boolean);
-      return segments.length === 2 ? [{ prior: 0, segments }] : [];
+      return segments.length === 2 ? [{ prior: 0, distinct: true, segments }] : [];
     }
 
     const strokeCuts = this.findStrokeCuts(minX, maxX);
     const splitCandidates = findSplitCandidates(columns, minX, maxX, strokeCuts);
-    const pixelCandidates = splitCandidates.map(({ cut, prior }) => ({
+    const pixelCandidates = splitCandidates.map(({ cut, prior, evidence }) => ({
       prior,
+      distinct: evidence !== "fallback",
       segments: [
         this.boundsForMaskRange(minX, cut - 1, columns, tops, bottoms),
         this.boundsForMaskRange(cut, maxX, columns, tops, bottoms),
@@ -487,6 +545,7 @@ export class InkRecognizer {
       const overlap = Math.max(0, left.x + left.width - right.x) / Math.max(1, Math.min(left.width, right.width));
       candidates.push({
         prior: 0.18 + Math.min(0.32, separation * 0.9) - Math.min(0.18, overlap * 0.15),
+        distinct: separation >= 0.12 && overlap <= 0.45,
         segments: [
           { bounds: left, strokeStart: 0, strokeEnd: partition },
           { bounds: right, strokeStart: partition, strokeEnd: this.strokes.length },
