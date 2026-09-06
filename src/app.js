@@ -4,7 +4,7 @@ import { applyDocumentTranslations, formatDecimal, initialLocale, normaliseLocal
 import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
-  "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button",
+  "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button", "share-button",
   "header-best", "model-note", "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
@@ -33,6 +33,7 @@ let recognitionSnapshot = { state: "ready", messageKey: "recognition.writeLarge"
 let predictionSnapshot = { digits: null, complete: false };
 let keypadMode = false;
 let keypadDigits = "";
+const SHARE_URL = "https://faroit.com/gehirnjogging/";
 
 const t = (key, parameters) => translate(locale, key, parameters);
 
@@ -294,6 +295,63 @@ function showToast(message) {
   toastTimer = setTimeout(() => elements.toast.classList.remove("is-visible"), 1800);
 }
 
+function createShareText(summary, { includeUrl = true } = {}) {
+  const correct = TOTAL_PROBLEMS - summary.mistakes;
+  const copy = t("share.message", {
+    score: formatSeconds(summary.finalSeconds),
+    raw: formatSeconds(summary.rawSeconds),
+    correct,
+    total: TOTAL_PROBLEMS,
+    mistakes: summary.mistakes,
+  });
+  return includeUrl ? `${copy}\n${SHARE_URL}` : copy;
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch { /* Fall through to the legacy copy path. */ }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.setAttribute("aria-hidden", "true");
+  textarea.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0";
+  document.body.append(textarea);
+  textarea.select();
+  let copied = false;
+  try { copied = document.execCommand("copy"); } catch { /* Clipboard access can be blocked. */ }
+  textarea.remove();
+  return copied;
+}
+
+async function shareResult() {
+  if (!latestSummary) return;
+  const clipboardText = createShareText(latestSummary);
+  const copyPromise = copyText(clipboardText);
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: t("meta.title"),
+        text: createShareText(latestSummary, { includeUrl: false }),
+        url: SHARE_URL,
+      });
+      const copied = await copyPromise;
+      showToast(copied ? t("share.sharedCopied") : t("share.shared"));
+      return;
+    } catch (error) {
+      if (error?.name !== "AbortError") console.warn("Native sharing is unavailable", error);
+    }
+  }
+
+  const copied = await copyPromise;
+  showToast(copied ? t("share.copied") : t("share.copyFailed"));
+}
+
 function currentFullscreenElement() {
   return document.fullscreenElement || document.webkitFullscreenElement || null;
 }
@@ -333,6 +391,7 @@ async function toggleFullscreen() {
 function bindUi() {
   elements["start-button"].addEventListener("click", startGame);
   elements["again-button"].addEventListener("click", startGame);
+  elements["share-button"].addEventListener("click", shareResult);
   elements["home-button"].addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "auto" });
     showScreen("home-screen");

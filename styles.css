@@ -848,7 +848,8 @@ summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 .score-breakdown strong { font-size: 13px; }
 
 .personal-line { margin: 18px 0 26px; color: var(--ink-soft); font-weight: 700; }
-.results-actions { display: flex; align-items: center; gap: 12px; }
+.results-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.button--share { color: var(--coral-dark); border-color: var(--coral-dark); background: #fff4f6; }
 
 .run-log {
   align-self: center;
