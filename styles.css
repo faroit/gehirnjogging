@@ -404,16 +404,6 @@ main {
   mix-blend-mode: multiply;
 }
 
-.hero-card__number {
-  margin: -28px 0 -10px;
-  color: var(--blue);
-  font-family: "Cooper Black", ui-rounded, sans-serif;
-  font-size: 185px;
-  font-weight: 800;
-  letter-spacing: -0.12em;
-  line-height: 1;
-}
-
 .rule-grid {
   position: relative;
   z-index: 1;
@@ -903,7 +893,6 @@ footer {
   .app-shell { padding-block: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-bottom)); }
   .screen--home { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 20px; height: 100%; padding: 18px 0; }
   .hero-card { width: 100%; min-height: auto; transform: rotate(0); }
-  .hero-card__number { position: absolute; top: -50px; right: 25px; z-index: 0; font-size: 130px; opacity: .12; }
   .screen--game { height: 100%; }
   .game-grid { grid-template-columns: 1fr; grid-template-rows: minmax(180px, .72fr) minmax(0, 1.28fr); height: 100%; margin: 0; box-shadow: none; }
   .problem-panel { min-height: 0; border-radius: 22px 22px 0 0; box-shadow: 0 18px 42px rgba(52,42,24,.1); }
