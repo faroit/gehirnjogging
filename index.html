@@ -92,6 +92,7 @@
           <h1 class="visually-hidden" id="game-title" data-i18n="game.title">Calculation sprint</h1>
           <div class="game-grid">
             <div class="answer-flash" id="answer-flash" aria-hidden="true"></div>
+            <div class="game-countdown" id="game-countdown" aria-live="assertive" aria-atomic="true" hidden></div>
             <article class="paper problem-panel">
               <div class="game-meta">
                 <div><span data-i18n="game.problem">Problem</span><strong id="progress-text">01 / 20</strong></div>
@@ -103,7 +104,7 @@
               </div>
 
               <div class="problem-stage">
-                <div class="equation" id="equation" aria-live="polite">7 + 6 =</div>
+                <div class="equation" id="equation" aria-live="polite"></div>
                 <div class="feedback-mark" id="feedback-mark" aria-hidden="true"></div>
               </div>
 

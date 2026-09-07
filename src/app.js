@@ -16,7 +16,7 @@ import { InkRecognizer } from "./ink-recognizer.js";
 const elements = Object.fromEntries([
   "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button", "share-button", "restart-button", "quit-button",
   "daily-normal-button", "daily-date",
-  "progress-text", "timer-text", "equation", "feedback-mark",
+  "progress-text", "timer-text", "equation", "feedback-mark", "game-countdown",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
   "erase-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst", "results-fireworks",
@@ -43,6 +43,7 @@ let modelAccuracy = 0;
 let latestSummary = null;
 let shareSummaryActive = null;
 let fireworksTimer = 0;
+let countdownTimer = 0;
 let recognitionSnapshot = { state: "ready", messageKey: "recognition.writeLarge", parameters: {} };
 let predictionSnapshot = { digits: null, complete: false };
 let keypadMode = false;
@@ -260,6 +261,40 @@ function updateTimer() {
   timerFrame = requestAnimationFrame(updateTimer);
 }
 
+function clearCountdown() {
+  clearTimeout(countdownTimer);
+  elements["game-countdown"].hidden = true;
+  elements["game-countdown"].getAnimations().forEach((animation) => animation.cancel());
+}
+
+function startCountdown() {
+  const steps = ["3", "2", "1", t("game.go")];
+  const countdown = elements["game-countdown"];
+  let step = 0;
+  const advance = () => {
+    countdown.hidden = false;
+    countdown.textContent = steps[step];
+    countdown.animate(
+      [
+        { opacity: 0, transform: "scale(.55) rotate(-5deg)" },
+        { opacity: 1, transform: "scale(1.06) rotate(0)", offset: .22 },
+        { opacity: 1, transform: "scale(1)", offset: .72 },
+        { opacity: 0, transform: "scale(1.18) rotate(3deg)" },
+      ],
+      { duration: step === steps.length - 1 ? 620 : 700, easing: "cubic-bezier(.2,.8,.25,1)" },
+    );
+    step += 1;
+    if (step < steps.length) countdownTimer = setTimeout(advance, 700);
+    else countdownTimer = setTimeout(() => {
+      countdown.hidden = true;
+      renderProblem();
+      runStartedAt = performance.now();
+      updateTimer();
+    }, 620);
+  };
+  advance();
+}
+
 function renderProblem() {
   const problem = problems[problemIndex];
   elements["progress-text"].textContent = `${String(problemIndex + 1).padStart(2, "0")} / ${TOTAL_PROBLEMS}`;
@@ -289,6 +324,7 @@ function startGame(mode = activeMode) {
   }
   window.scrollTo({ top: 0, behavior: "auto" });
   cancelAnimationFrame(timerFrame);
+  clearCountdown();
   activeMode = mode;
   problems = isDailyMode(mode)
     ? createDailyProblems(mode, dailyDay)
@@ -300,15 +336,17 @@ function startGame(mode = activeMode) {
   lastTimerTenth = -1;
   acceptingAnswer = false;
   latestSummary = null;
+  elements["progress-text"].textContent = `— / ${TOTAL_PROBLEMS}`;
+  elements["progress-bar"].style.transform = "scaleX(0)";
+  elements["timer-text"].textContent = formatDecimal(locale, 0, 1);
+  elements.equation.textContent = "";
   elements["restart-button"].hidden = isDailyMode(activeMode);
   setKeypadMode(!recognizer || inputPreference === "keypad");
   showScreen("game-screen");
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
     recognizer?.resize();
-    renderProblem();
-    runStartedAt = performance.now();
-    updateTimer();
+    startCountdown();
   }, 270);
 }
 
@@ -316,6 +354,7 @@ function quitGame() {
   const isActiveRun = runStartedAt && problemIndex < TOTAL_PROBLEMS;
   if (isActiveRun && !confirm(t("confirm.leave"))) return;
   cancelAnimationFrame(timerFrame);
+  clearCountdown();
   runStartedAt = 0;
   acceptingAnswer = false;
   recognizer?.setEnabled(false);
