@@ -51,13 +51,11 @@
               <div class="daily-action">
                 <button class="button button--primary button--daily button--easy" id="start-button" disabled>
                   <span data-i18n="home.loading">Loading the pen…</span>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
                 </button>
               </div>
               <div class="daily-action">
                 <button class="button button--primary button--daily" id="daily-normal-button" type="button" disabled>
                   <span data-i18n="home.loading">Loading the pen…</span>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
                 </button>
               </div>
             </div>
@@ -202,14 +200,26 @@
       <div class="home-play-dock" id="home-play-dock" aria-hidden="true">
         <button class="button button--primary button--daily button--easy" id="daily-easy-dock-button" type="button" disabled tabindex="-1">
           <span data-i18n="home.loading">Loading the pen…</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
         </button>
         <button class="button button--primary button--daily" id="daily-normal-dock-button" type="button" disabled tabindex="-1">
           <span data-i18n="home.loading">Loading the pen…</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
         </button>
       </div>
     </div>
+
+    <dialog class="share-modal" id="share-modal" aria-labelledby="share-modal-title">
+      <div class="share-modal__card">
+        <button class="share-modal__close" id="share-modal-close" type="button" aria-label="Close" data-i18n-aria-label="share.close">×</button>
+        <p class="eyebrow" data-i18n="share.eyebrow">Daily result</p>
+        <h2 id="share-modal-title" data-i18n="share.title">Ready to share?</h2>
+        <p class="share-modal__score" id="share-modal-score"></p>
+        <textarea class="share-modal__text" id="share-modal-text" readonly aria-label="Share text" data-i18n-aria-label="share.textLabel"></textarea>
+        <div class="share-modal__actions">
+          <button class="button button--primary" id="share-copy-button" type="button" data-i18n="share.copy">Copy text</button>
+          <button class="button button--quiet button--share" id="share-native-button" type="button" data-i18n="share.send">Share…</button>
+        </div>
+      </div>
+    </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>

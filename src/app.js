@@ -21,6 +21,7 @@ const elements = Object.fromEntries([
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
   "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
+  "share-modal", "share-modal-close", "share-modal-score", "share-modal-text", "share-copy-button", "share-native-button",
   "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
 const appShell = document.querySelector(".app-shell");
@@ -41,6 +42,7 @@ let feedbackFlashAnimation;
 let modelState = "loading";
 let modelAccuracy = 0;
 let latestSummary = null;
+let shareSummaryActive = null;
 let recognitionSnapshot = { state: "ready", messageKey: "recognition.writeLarge", parameters: {} };
 let predictionSnapshot = { digits: null, complete: false };
 let keypadMode = false;
@@ -407,6 +409,7 @@ function refreshLocaleCopy() {
   updateFullscreenButton();
   recognizer?.refreshLocale();
   if (latestSummary) renderResults(latestSummary);
+  if (elements["share-modal"].open && shareSummaryActive) openShareModal(shareSummaryActive);
 }
 
 function setLocale(nextLocale, { remember = true } = {}) {
@@ -424,20 +427,22 @@ function showToast(message) {
   toastTimer = setTimeout(() => elements.toast.classList.remove("is-visible"), 1800);
 }
 
-function createShareText(summary, { includeUrl = true } = {}) {
-  const correct = TOTAL_PROBLEMS - summary.mistakes;
-  const challenge = isDailyMode(summary.mode)
+function shareChallenge(summary) {
+  return isDailyMode(summary.mode)
     ? t("share.dailyChallenge", { mode: modeLabel(summary.mode), day: summary.day })
     : t("share.trainingChallenge", { mode: modeLabel(summary.mode) });
-  const copy = t("share.message", {
-    challenge,
+}
+
+function createShareText(summary) {
+  const correct = TOTAL_PROBLEMS - summary.mistakes;
+  return t("share.message", {
+    challenge: shareChallenge(summary),
     score: formatSeconds(summary.finalSeconds),
     raw: formatSeconds(summary.rawSeconds),
     correct,
     total: TOTAL_PROBLEMS,
     mistakes: summary.mistakes,
   });
-  return includeUrl ? `${copy}\n${SHARE_URL}` : copy;
 }
 
 async function copyText(text) {
@@ -461,8 +466,28 @@ async function copyText(text) {
   return copied;
 }
 
-async function shareSummary(summary) {
-  const clipboardText = createShareText(summary, { includeUrl: false });
+function openShareModal(summary) {
+  if (!summary) return;
+  shareSummaryActive = summary;
+  const challenge = shareChallenge(summary);
+  elements["share-modal-score"].textContent = `${challenge} · ${formatSeconds(summary.finalSeconds)}`;
+  elements["share-modal-text"].value = createShareText(summary);
+  if (!elements["share-modal"].open) elements["share-modal"].showModal();
+}
+
+function closeShareModal() {
+  if (elements["share-modal"].open) elements["share-modal"].close();
+}
+
+async function copyShareText() {
+  if (!shareSummaryActive) return;
+  const copied = await copyText(createShareText(shareSummaryActive));
+  showToast(copied ? t("share.copied") : t("share.copyFailed"));
+}
+
+async function shareThroughSystem() {
+  if (!shareSummaryActive) return;
+  const clipboardText = createShareText(shareSummaryActive);
   const copyPromise = copyText(clipboardText);
 
   if (navigator.share) {
@@ -481,12 +506,12 @@ async function shareSummary(summary) {
 }
 
 function shareResult() {
-  if (latestSummary) return shareSummary(latestSummary);
+  if (latestSummary) openShareModal(latestSummary);
 }
 
 function handleDailyAction(mode) {
   const summary = readDailySummary(mode);
-  if (summary) return shareSummary(summary);
+  if (summary) return openShareModal(summary);
   return startGame(mode);
 }
 
@@ -538,6 +563,12 @@ function bindUi() {
   elements["restart-button"].addEventListener("click", restartGame);
   elements["quit-button"].addEventListener("click", quitGame);
   elements["share-button"].addEventListener("click", shareResult);
+  elements["share-modal-close"].addEventListener("click", closeShareModal);
+  elements["share-copy-button"].addEventListener("click", copyShareText);
+  elements["share-native-button"].addEventListener("click", shareThroughSystem);
+  elements["share-modal"].addEventListener("click", (event) => {
+    if (event.target === elements["share-modal"]) closeShareModal();
+  });
   elements["home-button"].addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "auto" });
     showScreen("home-screen");
