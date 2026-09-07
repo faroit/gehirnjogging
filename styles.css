@@ -279,24 +279,6 @@ main {
 .input-preference__option b { font-family: var(--font-display); font-size: 23px; line-height: 1; }
 .input-preference__option small { align-self: end; margin-top: 10px; color: var(--ink-soft); font-family: var(--font-ui); font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
 
-.home-play-dock {
-  position: fixed;
-  z-index: 20;
-  left: 50%;
-  bottom: max(16px, env(safe-area-inset-bottom));
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  width: min(calc(100% - 40px), 440px);
-  pointer-events: none;
-  opacity: 0;
-  transform: translate(-50%, calc(100% + 28px));
-  transition: opacity 180ms ease, transform 220ms cubic-bezier(.22,.8,.28,1);
-}
-
-.home-play-dock .button { width: 100%; }
-.app-shell.has-home-scroll .home-play-dock { pointer-events: auto; opacity: 1; transform: translate(-50%, 0); }
-
 .eyebrow,
 .ink-label {
   width: fit-content;
@@ -449,6 +431,8 @@ main {
 
 .daily-action { min-width: 0; }
 .daily-actions .button { width: 100%; }
+.daily-card { width: min(100%, 540px); min-height: 0; margin-top: 30px; padding: 28px; transform: rotate(-.8deg); }
+.daily-card .mode-panel__label { margin-bottom: 16px; }
 
 .mode-card {
   display: grid;
@@ -1163,11 +1147,11 @@ footer {
   .screen--home { padding: 12px 0 max(96px, env(safe-area-inset-bottom)); }
   .hero-copy { margin-bottom: 14px; }
   .daily-actions { gap: 10px; }
-  .daily-actions .button, .home-play-dock .button { padding-inline: 12px; font-size: 10px; letter-spacing: .06em; }
-  .app-shell.has-home-scroll .hero-copy .daily-actions { visibility: hidden; pointer-events: none; }
+  .daily-actions .button { padding-inline: 12px; font-size: 10px; letter-spacing: .06em; }
   .hero-copy h1 { font-size: clamp(44px, 13.5vw, 62px); line-height: .9; }
   .lede { margin: 22px 0 18px; font-size: 17px; }
   .hero-card { padding: 22px 20px; }
+  .daily-card { margin-top: 20px; }
   .screen--settings { padding: 18px 0; }
   .settings-card { padding: 28px 22px; }
   .input-preference { grid-template-columns: 1fr; }

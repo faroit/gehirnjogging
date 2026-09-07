@@ -14,7 +14,7 @@ import { applyDocumentTranslations, formatDecimal, initialLocale, normaliseLocal
 import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
-  "home-screen", "game-screen", "results-screen", "settings-screen", "start-button", "daily-easy-dock-button", "daily-normal-dock-button", "home-play-dock", "again-button", "home-button", "share-button", "restart-button", "quit-button",
+  "home-screen", "game-screen", "results-screen", "settings-screen", "start-button", "again-button", "home-button", "share-button", "restart-button", "quit-button",
   "daily-normal-button", "daily-date",
   "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
@@ -25,8 +25,6 @@ const elements = Object.fromEntries([
   "onboarding-modal", "onboarding-training-button", "onboarding-skip-button", "settings-button", "settings-back-button",
   "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
-const appShell = document.querySelector(".app-shell");
-
 let locale = initialLocale();
 let recognizer;
 let problems = [];
@@ -132,20 +130,11 @@ function updateHomeModes() {
       button.setAttribute("aria-label", summary ? t("home.dailyScoreShare", { mode: modeLabel(mode), score: formatSeconds(summary.finalSeconds) }) : label);
     }
   };
-  updateDailyAction(GAME_MODES.DAILY_EASY, easyComplete, ["start-button", "daily-easy-dock-button"], "home.dailyCompleteButton");
-  updateDailyAction(GAME_MODES.DAILY_NORMAL, normalComplete, ["daily-normal-button", "daily-normal-dock-button"], "home.dailyNormalCompleteButton");
+  updateDailyAction(GAME_MODES.DAILY_EASY, easyComplete, ["start-button"], "home.dailyCompleteButton");
+  updateDailyAction(GAME_MODES.DAILY_NORMAL, normalComplete, ["daily-normal-button"], "home.dailyNormalCompleteButton");
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
     button.disabled = !ready;
   });
-}
-
-function updateHomeScrollDock() {
-  const homeActive = elements["home-screen"].classList.contains("is-active");
-  const visible = homeActive && elements["home-screen"].scrollTop > 72;
-  appShell.classList.toggle("has-home-scroll", visible);
-  elements["home-play-dock"].setAttribute("aria-hidden", String(!visible));
-  elements["daily-easy-dock-button"].tabIndex = visible ? 0 : -1;
-  elements["daily-normal-dock-button"].tabIndex = visible ? 0 : -1;
 }
 
 function readBest() {
@@ -175,10 +164,8 @@ function showScreen(id) {
   next.hidden = false;
   if (id === "results-screen") next.scrollTop = 0;
   elements["settings-button"].hidden = id === "game-screen";
-  if (id !== "home-screen") updateHomeScrollDock();
   requestAnimationFrame(() => requestAnimationFrame(() => {
     next.classList.add("is-active");
-    updateHomeScrollDock();
   }));
 }
 
@@ -632,8 +619,6 @@ async function toggleFullscreen() {
 
 function bindUi() {
   elements["start-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_EASY));
-  elements["daily-easy-dock-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_EASY));
-  elements["daily-normal-dock-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_NORMAL));
   elements["again-button"].addEventListener("click", startGame);
   elements["daily-normal-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_NORMAL));
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
@@ -699,7 +684,6 @@ function bindUi() {
   });
   elements["language-select"].addEventListener("change", (event) => setLocale(event.target.value));
   elements["fullscreen-button"].addEventListener("click", toggleFullscreen);
-  elements["home-screen"].addEventListener("scroll", updateHomeScrollDock, { passive: true });
   document.addEventListener("fullscreenchange", updateFullscreenButton);
   document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
 }

@@ -50,18 +50,21 @@
             <p class="eyebrow" id="daily-date" data-i18n="home.eyebrow">Today's challenge</p>
             <h1 id="home-title" data-i18n-html="home.title">Wake up<br />your <em>numbers!</em></h1>
             <p class="lede" data-i18n="home.lede">One shared challenge every day. Twenty sums. One official time.</p>
-            <div class="daily-actions" aria-label="Choose today's daily game" data-i18n-aria-label="aria.dailyGames">
-              <div class="daily-action">
-                <button class="button button--primary button--daily button--easy" id="start-button" disabled>
-                  <span data-i18n="home.loading">Loading the pen…</span>
-                </button>
+            <article class="hero-card daily-card" aria-label="Daily games" data-i18n-aria-label="aria.dailyGames">
+              <p class="mode-panel__label" data-i18n="home.dailyGamesTitle">Daily challenge</p>
+              <div class="daily-actions">
+                <div class="daily-action">
+                  <button class="button button--primary button--daily button--easy" id="start-button" disabled>
+                    <span data-i18n="home.loading">Loading the pen…</span>
+                  </button>
+                </div>
+                <div class="daily-action">
+                  <button class="button button--primary button--daily" id="daily-normal-button" type="button" disabled>
+                    <span data-i18n="home.loading">Loading the pen…</span>
+                  </button>
+                </div>
               </div>
-              <div class="daily-action">
-                <button class="button button--primary button--daily" id="daily-normal-button" type="button" disabled>
-                  <span data-i18n="home.loading">Loading the pen…</span>
-                </button>
-              </div>
-            </div>
+            </article>
           </div>
 
           <aside class="hero-card mode-card" aria-label="Training games" data-i18n-aria-label="aria.trainingGames">
@@ -218,14 +221,6 @@
         </section>
       </main>
 
-      <div class="home-play-dock" id="home-play-dock" aria-hidden="true">
-        <button class="button button--primary button--daily button--easy" id="daily-easy-dock-button" type="button" disabled tabindex="-1">
-          <span data-i18n="home.loading">Loading the pen…</span>
-        </button>
-        <button class="button button--primary button--daily" id="daily-normal-dock-button" type="button" disabled tabindex="-1">
-          <span data-i18n="home.loading">Loading the pen…</span>
-        </button>
-      </div>
     </div>
 
     <dialog class="share-modal" id="share-modal" aria-labelledby="share-modal-title">
