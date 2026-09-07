@@ -121,7 +121,7 @@ footer {
 .fullscreen-button:active,
 .settings-button:active { transform: translateY(1px); }
 .fullscreen-icon { grid-area: 1 / 1; width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
-.settings-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.settings-button svg { width: 22px; height: 22px; fill: var(--paper); stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .fullscreen-icon--exit { display: none; }
 .fullscreen-button.is-active .fullscreen-icon--enter { display: none; }
 .fullscreen-button.is-active .fullscreen-icon--exit { display: block; }
