@@ -24,6 +24,9 @@
           <span class="wordmark__text">Dr. Stöter's<small data-i18n="brand.tagline">Brain Training</small></span>
         </a>
         <div class="header-actions">
+          <button class="settings-button" id="settings-button" type="button" aria-label="Settings" data-i18n-aria-label="settings.open">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z" /><path d="M19.4 13.7a1.7 1.7 0 0 0 .34 1.88l.06.06-2.14 2.14-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V19h-3.02v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-2.14-2.14.06-.06a1.7 1.7 0 0 0 .34-1.88 1.7 1.7 0 0 0-1.56-1.03H5.3V9.62h.09a1.7 1.7 0 0 0 1.56-1.03 1.7 1.7 0 0 0-.34-1.88l-.06-.06L8.69 4.5l.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56V3.25h3.02v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.14 2.14-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03h.09v3.02h-.09a1.7 1.7 0 0 0-1.56 1.03Z" /></svg>
+          </button>
           <button class="fullscreen-button" id="fullscreen-button" type="button" aria-label="Enter fullscreen" aria-pressed="false">
             <svg class="fullscreen-icon fullscreen-icon--enter" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" /></svg>
             <svg class="fullscreen-icon fullscreen-icon--exit" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5" /></svg>
@@ -196,6 +199,23 @@
             <ol id="run-list"></ol>
           </aside>
         </section>
+
+        <section class="screen screen--settings" id="settings-screen" aria-labelledby="settings-title" hidden>
+          <article class="settings-card paper">
+            <p class="eyebrow" data-i18n="settings.eyebrow">Your settings</p>
+            <h1 id="settings-title" data-i18n="settings.title">Play your way.</h1>
+            <p class="settings-card__lede" data-i18n="settings.inputPrompt">How would you like to answer?</p>
+            <div class="input-preference" aria-label="Choose your input preference" data-i18n-aria-label="settings.inputPrompt">
+              <button class="input-preference__option" type="button" data-input-preference="handwriting">
+                <span aria-hidden="true">✎</span><b data-i18n="settings.handwriting">Handwriting</b><small data-i18n="settings.handwritingDetail">Write answers on screen</small>
+              </button>
+              <button class="input-preference__option" type="button" data-input-preference="keypad">
+                <span aria-hidden="true">⌨</span><b data-i18n="settings.keypad">Numpad / keyboard</b><small data-i18n="settings.keypadDetail">Tap the keypad or type numbers</small>
+              </button>
+            </div>
+            <button class="button button--quiet" id="settings-back-button" type="button" data-i18n="settings.back">Back home</button>
+          </article>
+        </section>
       </main>
 
       <div class="home-play-dock" id="home-play-dock" aria-hidden="true">
@@ -218,6 +238,26 @@
         <div class="share-modal__actions">
           <button class="button button--primary" id="share-copy-button" type="button" data-i18n="share.copy">Copy text</button>
           <button class="button button--quiet button--share" id="share-native-button" type="button" data-i18n="share.send">Share…</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="onboarding-modal" id="onboarding-modal" aria-labelledby="onboarding-title">
+      <div class="onboarding-modal__card">
+        <p class="eyebrow" data-i18n="onboarding.eyebrow">First time here?</p>
+        <h2 id="onboarding-title" data-i18n="onboarding.title">Warm up first.</h2>
+        <p data-i18n="onboarding.message">Try a practice round before today's challenge, then choose how you want to answer.</p>
+        <div class="input-preference" aria-label="Choose your input preference" data-i18n-aria-label="settings.inputPrompt">
+          <button class="input-preference__option" type="button" data-input-preference="handwriting">
+            <span aria-hidden="true">✎</span><b data-i18n="settings.handwriting">Handwriting</b><small data-i18n="settings.handwritingDetail">Write answers on screen</small>
+          </button>
+          <button class="input-preference__option" type="button" data-input-preference="keypad">
+            <span aria-hidden="true">⌨</span><b data-i18n="settings.keypad">Numpad / keyboard</b><small data-i18n="settings.keypadDetail">Tap the keypad or type numbers</small>
+          </button>
+        </div>
+        <div class="onboarding-modal__actions">
+          <button class="button button--primary" id="onboarding-training-button" type="button" data-i18n="onboarding.training">Try practice first</button>
+          <button class="button button--quiet" id="onboarding-skip-button" type="button" data-i18n="onboarding.skip">Go to today's game</button>
         </div>
       </div>
     </dialog>

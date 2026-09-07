@@ -14,7 +14,7 @@ import { applyDocumentTranslations, formatDecimal, initialLocale, normaliseLocal
 import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
-  "home-screen", "game-screen", "results-screen", "start-button", "daily-easy-dock-button", "daily-normal-dock-button", "home-play-dock", "again-button", "home-button", "share-button", "restart-button", "quit-button",
+  "home-screen", "game-screen", "results-screen", "settings-screen", "start-button", "daily-easy-dock-button", "daily-normal-dock-button", "home-play-dock", "again-button", "home-button", "share-button", "restart-button", "quit-button",
   "daily-normal-button", "daily-date",
   "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
@@ -22,6 +22,7 @@ const elements = Object.fromEntries([
   "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst", "results-fireworks",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
   "share-modal", "share-modal-close", "share-modal-score", "share-modal-text", "share-copy-button", "share-native-button",
+  "onboarding-modal", "onboarding-training-button", "onboarding-skip-button", "settings-button", "settings-back-button",
   "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
 const appShell = document.querySelector(".app-shell");
@@ -50,8 +51,25 @@ let keypadMode = false;
 let keypadDigits = "";
 let activeMode = GAME_MODES.DAILY_EASY;
 const dailyDay = localDayKey();
+const INPUT_PREFERENCE_COOKIE = "dr_stoeter_input_preference_v1";
+const WELCOME_COOKIE = "dr_stoeter_welcome_v1";
+let inputPreference = "handwriting";
 
 const t = (key, parameters) => translate(locale, key, parameters);
+
+function readCookie(name) {
+  const target = `${encodeURIComponent(name)}=`;
+  return document.cookie.split(";").map((item) => item.trim()).find((item) => item.startsWith(target))?.slice(target.length) || null;
+}
+
+function writeCookie(name, value) {
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Max-Age=31536000; Path=/; SameSite=Lax`;
+}
+
+function readInputPreference() {
+  const stored = readCookie(INPUT_PREFERENCE_COOKIE);
+  return stored === "keypad" || stored === "handwriting" ? stored : "handwriting";
+}
 
 function dailyCookieName(mode) {
   return `dr_stoeter_daily_v1_${dailyDay}_${mode}`;
@@ -148,7 +166,7 @@ function formatSeconds(seconds, precision = 1) {
 }
 
 function showScreen(id) {
-  const screens = [elements["home-screen"], elements["game-screen"], elements["results-screen"]];
+  const screens = [elements["home-screen"], elements["game-screen"], elements["results-screen"], elements["settings-screen"]];
   for (const screen of screens) {
     screen.classList.remove("is-active");
     if (screen.id !== id) setTimeout(() => { if (!screen.classList.contains("is-active")) screen.hidden = true; }, 230);
@@ -156,6 +174,7 @@ function showScreen(id) {
   const next = document.getElementById(id);
   next.hidden = false;
   if (id === "results-screen") next.scrollTop = 0;
+  elements["settings-button"].hidden = id === "game-screen";
   if (id !== "home-screen") updateHomeScrollDock();
   requestAnimationFrame(() => requestAnimationFrame(() => {
     next.classList.add("is-active");
@@ -216,6 +235,22 @@ function updateInputModeCopy() {
   elements["keyboard-button"].querySelector("span").textContent = t(keypadMode ? "game.useHandwriting" : "game.useKeypad");
 }
 
+function updateInputPreferenceUi() {
+  document.querySelectorAll("[data-input-preference]").forEach((button) => {
+    const selected = button.dataset.inputPreference === inputPreference;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+}
+
+function setInputPreference(preference) {
+  if (preference !== "handwriting" && preference !== "keypad") return;
+  inputPreference = preference;
+  writeCookie(INPUT_PREFERENCE_COOKIE, preference);
+  updateInputPreferenceUi();
+  setKeypadMode(preference === "keypad");
+}
+
 function setKeypadMode(enabled) {
   keypadMode = Boolean(enabled);
   keypadDigits = "";
@@ -272,7 +307,7 @@ function startGame(mode = activeMode) {
   acceptingAnswer = false;
   latestSummary = null;
   elements["restart-button"].hidden = isDailyMode(activeMode);
-  setKeypadMode(!recognizer || keypadMode);
+  setKeypadMode(!recognizer || inputPreference === "keypad");
   showScreen("game-screen");
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -438,6 +473,7 @@ function refreshLocaleCopy() {
   setPrediction(predictionSnapshot.digits, { complete: predictionSnapshot.complete });
   renderKeypad();
   updateInputModeCopy();
+  updateInputPreferenceUi();
   updateFullscreenButton();
   recognizer?.refreshLocale();
   if (latestSummary) renderResults(latestSummary);
@@ -509,6 +545,17 @@ function openShareModal(summary) {
 
 function closeShareModal() {
   if (elements["share-modal"].open) elements["share-modal"].close();
+}
+
+function closeOnboarding() {
+  if (elements["onboarding-modal"].open) elements["onboarding-modal"].close();
+}
+
+function finishOnboarding({ training = false } = {}) {
+  if (!readCookie(INPUT_PREFERENCE_COOKIE)) setInputPreference("handwriting");
+  writeCookie(WELCOME_COOKIE, "1");
+  closeOnboarding();
+  if (training) startGame(GAME_MODES.TRAINING_SMALL);
 }
 
 async function copyShareText() {
@@ -601,6 +648,16 @@ function bindUi() {
   elements["share-modal"].addEventListener("click", (event) => {
     if (event.target === elements["share-modal"]) closeShareModal();
   });
+  document.querySelectorAll("[data-input-preference]").forEach((button) => {
+    button.addEventListener("click", () => setInputPreference(button.dataset.inputPreference));
+  });
+  elements["onboarding-training-button"].addEventListener("click", () => finishOnboarding({ training: true }));
+  elements["onboarding-skip-button"].addEventListener("click", () => finishOnboarding());
+  elements["settings-button"].addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    showScreen("settings-screen");
+  });
+  elements["settings-back-button"].addEventListener("click", () => showScreen("home-screen"));
   elements["home-button"].addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "auto" });
     showScreen("home-screen");
@@ -611,7 +668,7 @@ function bindUi() {
   });
   elements["erase-button"].addEventListener("click", () => recognizer?.clear());
   elements["submit-answer-button"].addEventListener("click", () => recognizer?.submit());
-  elements["keyboard-button"].addEventListener("click", () => setKeypadMode(!keypadMode));
+  elements["keyboard-button"].addEventListener("click", () => setInputPreference(keypadMode ? "handwriting" : "keypad"));
   elements["keyboard-entry"].querySelectorAll("[data-digit]").forEach((button) => {
     button.addEventListener("click", () => addKeypadDigit(button.dataset.digit));
   });
@@ -648,8 +705,10 @@ function bindUi() {
 }
 
 async function initialise() {
+  inputPreference = readInputPreference();
   setLocale(locale, { remember: false });
   bindUi();
+  updateInputPreferenceUi();
   updateFullscreenButton();
   try {
     const model = await DigitModel.load("./public/model/digits-cnn.bin");
@@ -668,6 +727,7 @@ async function initialise() {
     modelState = "ready";
     modelAccuracy = model.testAccuracy;
     refreshLocaleCopy();
+    if (!readCookie(WELCOME_COOKIE)) elements["onboarding-modal"].showModal();
   } catch (error) {
     console.error(error);
     modelState = "error";
