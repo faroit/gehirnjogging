@@ -54,6 +54,7 @@ const dailyDay = localDayKey();
 const INPUT_PREFERENCE_COOKIE = "dr_stoeter_input_preference_v1";
 const FIRST_GAME_COOKIE = "dr_stoeter_first_game_v2";
 const TRAINING_COMPLETE_COOKIE = "dr_stoeter_training_complete_v1";
+const SHARE_URL = "https://faroit.com/gehirnjogging/";
 let inputPreference = "handwriting";
 let pendingStartMode = null;
 
@@ -541,7 +542,7 @@ function shareChallenge(summary) {
 
 function createShareText(summary) {
   const correct = TOTAL_PROBLEMS - summary.mistakes;
-  return t("share.message", {
+  const message = t("share.message", {
     challenge: shareChallenge(summary),
     score: formatSeconds(summary.finalSeconds),
     raw: formatSeconds(summary.rawSeconds),
@@ -549,6 +550,7 @@ function createShareText(summary) {
     total: TOTAL_PROBLEMS,
     mistakes: summary.mistakes,
   });
+  return `${message}\n🔗 ${SHARE_URL}`;
 }
 
 async function copyText(text) {
