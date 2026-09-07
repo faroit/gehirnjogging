@@ -382,7 +382,7 @@ main {
 .button--easy { color: var(--ink); background: var(--mint); box-shadow: 0 7px 0 #36ae88, 0 13px 24px rgba(101, 221, 180, .24); }
 .button--easy:hover:not(:disabled) { background: #7ae8c1; box-shadow: 0 8px 0 #36ae88, 0 16px 28px rgba(101, 221, 180, .3); }
 .button--daily:disabled { color: #66738a; background: #c8cfda; box-shadow: 0 5px 0 #9ea8b8, 0 9px 16px rgba(20, 48, 92, .1); opacity: 1; }
-.button--daily.is-complete { padding-inline: 12px; color: #56647c; background: #d6dce5; box-shadow: 0 5px 0 #abb5c4, 0 9px 16px rgba(20, 48, 92, .1); font-size: 10px; letter-spacing: .04em; white-space: nowrap; }
+.button--daily.is-complete { padding-inline: 14px; color: #56647c; background: #d6dce5; box-shadow: 0 5px 0 #abb5c4, 0 9px 16px rgba(20, 48, 92, .1); letter-spacing: .04em; white-space: normal; }
 .button--daily.is-complete:hover:not(:disabled) { background: #e0e5ec; box-shadow: 0 6px 0 #abb5c4, 0 12px 20px rgba(20, 48, 92, .14); }
 @media (hover: hover) {
   .button--daily.is-complete:hover:not(:disabled) > span { display: none; }
@@ -476,7 +476,8 @@ main {
 }
 .daily-card__note { max-width: 410px; margin: 18px 0 30px; color: var(--ink-soft); font-family: var(--font-editorial); font-size: 16px; font-weight: 700; line-height: 1.32; }
 .daily-card--featured .daily-actions { margin-bottom: 25px; }
-.daily-card--featured .button--daily { min-height: 88px; padding-inline: 14px; font-size: clamp(10px, 1.02vw, 13px); }
+.daily-card--featured .button--daily { min-height: 102px; padding-inline: 16px; font-size: clamp(10px, 1.02vw, 13px); }
+.button--daily > span { display: block; max-inline-size: 15ch; overflow-wrap: anywhere; text-wrap: balance; }
 .button--training-launch { width: fit-content; min-height: 48px; padding-inline: 22px; color: var(--ink); background: rgba(255, 255, 255, .78); }
 .button--training-launch::before { content: "✦"; color: var(--coral-dark); font-size: 16px; }
 
@@ -1259,7 +1260,7 @@ footer {
   .daily-card--featured { padding: 26px 20px; }
   .daily-card--featured h2 { font-size: clamp(38px, 12vw, 54px); }
   .daily-card__note { margin: 14px 0 22px; font-size: 14px; }
-  .daily-card--featured .button--daily { min-height: 66px; }
+  .daily-card--featured .button--daily { min-height: 78px; }
   .button--training-launch { width: 100%; }
   .training-modal { width: min(calc(100vw - 24px), 720px); }
   .training-modal__card { padding: 28px 20px; }
