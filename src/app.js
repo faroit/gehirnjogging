@@ -176,6 +176,9 @@ function showScreen(id) {
   if (id === "results-screen") next.scrollTop = 0;
   requestAnimationFrame(() => requestAnimationFrame(() => {
     next.classList.add("is-active");
+    // Some desktop browsers restore an inner scroll position after a screen is
+    // unhidden. Reset it after that layout pass, before the result is visible.
+    if (id === "results-screen") next.scrollTop = 0;
   }));
 }
 
