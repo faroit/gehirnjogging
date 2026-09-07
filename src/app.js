@@ -22,7 +22,7 @@ const elements = Object.fromEntries([
   "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst", "results-fireworks",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
   "share-modal", "share-modal-close", "share-modal-score", "share-modal-text", "share-copy-button", "share-native-button",
-  "onboarding-modal", "onboarding-training-button", "onboarding-skip-button", "settings-button", "settings-back-button",
+  "onboarding-modal", "onboarding-training-button", "onboarding-skip-button", "onboarding-practice-note", "settings-button", "settings-back-button",
   "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
 let locale = initialLocale();
@@ -50,8 +50,10 @@ let keypadDigits = "";
 let activeMode = GAME_MODES.DAILY_EASY;
 const dailyDay = localDayKey();
 const INPUT_PREFERENCE_COOKIE = "dr_stoeter_input_preference_v1";
-const WELCOME_COOKIE = "dr_stoeter_welcome_v1";
+const FIRST_GAME_COOKIE = "dr_stoeter_first_game_v2";
+const TRAINING_COMPLETE_COOKIE = "dr_stoeter_training_complete_v1";
 let inputPreference = "handwriting";
+let pendingStartMode = null;
 
 const t = (key, parameters) => translate(locale, key, parameters);
 
@@ -67,6 +69,10 @@ function writeCookie(name, value) {
 function readInputPreference() {
   const stored = readCookie(INPUT_PREFERENCE_COOKIE);
   return stored === "keypad" || stored === "handwriting" ? stored : "handwriting";
+}
+
+function hasCompletedTraining() {
+  return readCookie(TRAINING_COMPLETE_COOKIE) === "1";
 }
 
 function dailyCookieName(mode) {
@@ -280,6 +286,14 @@ function startGame(mode = activeMode) {
     updateHomeModes();
     return;
   }
+  if (!readCookie(FIRST_GAME_COOKIE)) {
+    pendingStartMode = mode;
+    const suggestPractice = !hasCompletedTraining();
+    elements["onboarding-training-button"].hidden = !suggestPractice;
+    elements["onboarding-practice-note"].hidden = !suggestPractice;
+    if (!elements["onboarding-modal"].open) elements["onboarding-modal"].showModal();
+    return;
+  }
   window.scrollTo({ top: 0, behavior: "auto" });
   cancelAnimationFrame(timerFrame);
   activeMode = mode;
@@ -397,6 +411,8 @@ function finishGame() {
   if (isDailyMode(activeMode)) {
     markDailyComplete(activeMode);
     writeDailySummary(latestSummary);
+  } else {
+    writeCookie(TRAINING_COMPLETE_COOKIE, "1");
   }
   renderResults(latestSummary);
   elements["again-button"].hidden = isDailyMode(activeMode);
@@ -540,9 +556,11 @@ function closeOnboarding() {
 
 function finishOnboarding({ training = false } = {}) {
   if (!readCookie(INPUT_PREFERENCE_COOKIE)) setInputPreference("handwriting");
-  writeCookie(WELCOME_COOKIE, "1");
+  writeCookie(FIRST_GAME_COOKIE, "1");
   closeOnboarding();
-  if (training) startGame(GAME_MODES.TRAINING_SMALL);
+  const nextMode = training ? GAME_MODES.TRAINING_SMALL : pendingStartMode;
+  pendingStartMode = null;
+  if (nextMode) startGame(nextMode);
 }
 
 async function copyShareText() {
@@ -711,7 +729,6 @@ async function initialise() {
     modelState = "ready";
     modelAccuracy = model.testAccuracy;
     refreshLocaleCopy();
-    if (!readCookie(WELCOME_COOKIE)) elements["onboarding-modal"].showModal();
   } catch (error) {
     console.error(error);
     modelState = "error";

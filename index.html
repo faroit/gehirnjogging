@@ -239,9 +239,9 @@
 
     <dialog class="onboarding-modal" id="onboarding-modal" aria-labelledby="onboarding-title">
       <div class="onboarding-modal__card">
-        <p class="eyebrow" data-i18n="onboarding.eyebrow">First time here?</p>
-        <h2 id="onboarding-title" data-i18n="onboarding.title">Warm up first.</h2>
-        <p data-i18n="onboarding.message">Try a practice round before today's challenge, then choose how you want to answer.</p>
+        <p class="eyebrow" data-i18n="onboarding.eyebrow">First game</p>
+        <h2 id="onboarding-title" data-i18n="onboarding.title">How do you want to play?</h2>
+        <p data-i18n="onboarding.message">Choose how you want to enter answers. You can change this anytime in Settings.</p>
         <div class="input-preference" aria-label="Choose your input preference" data-i18n-aria-label="settings.inputPrompt">
           <button class="input-preference__option" type="button" data-input-preference="handwriting">
             <span aria-hidden="true">✎</span><b data-i18n="settings.handwriting">Handwriting</b><small data-i18n="settings.handwritingDetail">Write answers on screen</small>
@@ -250,9 +250,10 @@
             <span aria-hidden="true">⌨</span><b data-i18n="settings.keypad">Numpad / keyboard</b><small data-i18n="settings.keypadDetail">Tap the keypad or type numbers</small>
           </button>
         </div>
+        <p class="onboarding-modal__practice-note" id="onboarding-practice-note" data-i18n="onboarding.practiceNote">New to the game? A practice round is a good warm-up.</p>
         <div class="onboarding-modal__actions">
           <button class="button button--primary" id="onboarding-training-button" type="button" data-i18n="onboarding.training">Try practice first</button>
-          <button class="button button--quiet" id="onboarding-skip-button" type="button" data-i18n="onboarding.skip">Go to today's game</button>
+          <button class="button button--quiet" id="onboarding-skip-button" type="button" data-i18n="onboarding.skip">Continue</button>
         </div>
       </div>
     </dialog>

@@ -1102,6 +1102,7 @@ footer {
 .onboarding-modal__card { padding: clamp(28px, 5vw, 48px); border: 3px solid var(--ink); border-radius: inherit; background: var(--paper); box-shadow: 12px 12px 0 var(--yellow), 0 28px 70px rgba(20, 48, 92, .28); }
 .onboarding-modal h2 { margin: 6px 0 12px; font-size: clamp(42px, 9vw, 65px); line-height: .88; }
 .onboarding-modal p:not(.eyebrow) { max-width: 520px; margin: 0; color: var(--ink-soft); font-size: 18px; font-weight: 700; line-height: 1.35; }
+.onboarding-modal__practice-note { padding: 12px 14px; border-left: 4px solid var(--yellow); background: rgba(255, 216, 77, .18); font-size: 15px !important; }
 .onboarding-modal__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
 @keyframes breathe { 50% { transform: scale(.7); opacity: .55; } }
