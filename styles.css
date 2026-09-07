@@ -1075,6 +1075,11 @@ footer {
   background: var(--paper);
   box-shadow: 12px 12px 0 var(--yellow), 0 28px 70px rgba(20, 48, 92, .28);
 }
+.share-modal.is-daily .share-modal__card {
+  background: linear-gradient(145deg, #e9fff6 0%, #c9f6df 100%);
+  box-shadow: 12px 12px 0 #36ae88, 0 28px 70px rgba(20, 48, 92, .28);
+}
+.share-modal.is-daily .share-modal__text { background: rgba(255, 255, 255, .84); }
 .share-modal h2 { margin: 6px 36px 12px 0; font-size: clamp(38px, 8vw, 58px); line-height: .9; }
 .share-modal__score { margin: 0 0 20px; color: var(--blue); font-family: var(--font-editorial); font-size: 17px; font-weight: 700; line-height: 1.25; }
 .share-modal__text {

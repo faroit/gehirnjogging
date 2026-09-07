@@ -577,6 +577,7 @@ async function copyText(text) {
 function openShareModal(summary) {
   if (!summary) return;
   shareSummaryActive = summary;
+  elements["share-modal"].classList.toggle("is-daily", isDailyMode(summary.mode));
   const challenge = shareChallenge(summary);
   elements["share-modal-score"].textContent = `${challenge} · ${formatSeconds(summary.finalSeconds)}`;
   elements["share-modal-text"].value = createShareText(summary);
