@@ -28,7 +28,11 @@ html {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #e8f4ff;
+  background:
+    radial-gradient(circle at 7% 8%, rgba(255, 216, 77, .72), transparent 20rem),
+    radial-gradient(circle at 94% 17%, rgba(255, 92, 122, .28), transparent 24rem),
+    radial-gradient(circle at 88% 92%, rgba(101, 221, 180, .62), transparent 28rem),
+    #eef7ff;
 }
 
 body {
@@ -39,11 +43,7 @@ body {
   margin: 0;
   overflow: hidden;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 7% 8%, rgba(255, 216, 77, .72), transparent 20rem),
-    radial-gradient(circle at 94% 17%, rgba(255, 92, 122, .28), transparent 24rem),
-    radial-gradient(circle at 88% 92%, rgba(101, 221, 180, .62), transparent 28rem),
-    #eef7ff;
+  background: transparent;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
@@ -111,6 +111,8 @@ footer {
   border-radius: 50%;
   color: var(--ink);
   background: rgba(255, 255, 255, .82);
+  -webkit-backdrop-filter: saturate(1.3) blur(14px);
+  backdrop-filter: saturate(1.3) blur(14px);
   box-shadow: 0 3px 0 rgba(20, 48, 92, .14);
   cursor: pointer;
   transition: color 150ms ease, background 150ms ease, transform 150ms ease;
@@ -157,6 +159,8 @@ footer {
   border-radius: 999px;
   color: var(--ink);
   background: rgba(255, 255, 255, .82);
+  -webkit-backdrop-filter: saturate(1.3) blur(14px);
+  backdrop-filter: saturate(1.3) blur(14px);
   box-shadow: 0 3px 0 rgba(20, 48, 92, .14);
   cursor: pointer;
   appearance: none;
@@ -378,7 +382,15 @@ main {
   padding: 0 16px;
   border: 2px solid var(--ink);
   background: rgba(255, 255, 255, .8);
+  -webkit-backdrop-filter: saturate(1.25) blur(12px);
+  backdrop-filter: saturate(1.25) blur(12px);
   box-shadow: 0 3px 0 rgba(20, 48, 92, .14);
+}
+
+@supports (-webkit-touch-callout: none) {
+  html { min-height: -webkit-fill-available; }
+  body { min-height: -webkit-fill-available; }
+  .app-shell { min-height: -webkit-fill-available; }
 }
 
 .button--small {

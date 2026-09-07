@@ -4,8 +4,8 @@
   "description": "A private, offline-first 20-question arithmetic sprint with on-device handwriting recognition.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f3ebdd",
-  "theme_color": "#4d70ff",
+  "background_color": "#eef7ff",
+  "theme_color": "#eef7ff",
   "orientation": "any",
   "icons": [
     { "src": "./public/dr-stoeter-mascot-v2.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
