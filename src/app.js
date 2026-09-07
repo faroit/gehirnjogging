@@ -136,6 +136,8 @@ function updateHomeModes() {
       button.querySelector("span").textContent = label;
       button.disabled = !ready || (complete && !summary);
       button.classList.toggle("is-complete", Boolean(summary));
+      if (summary) button.dataset.shareLabel = t("home.dailyShareButton");
+      else delete button.dataset.shareLabel;
       button.setAttribute("aria-label", summary ? t("home.dailyScoreShare", { mode: modeLabel(mode), score: formatSeconds(summary.finalSeconds) }) : label);
     }
   };

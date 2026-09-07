@@ -368,6 +368,10 @@ main {
 .button--daily:disabled { color: #66738a; background: #c8cfda; box-shadow: 0 5px 0 #9ea8b8, 0 9px 16px rgba(20, 48, 92, .1); opacity: 1; }
 .button--daily.is-complete { padding-inline: 12px; color: #56647c; background: #d6dce5; box-shadow: 0 5px 0 #abb5c4, 0 9px 16px rgba(20, 48, 92, .1); font-size: 10px; letter-spacing: .04em; white-space: nowrap; }
 .button--daily.is-complete:hover:not(:disabled) { background: #e0e5ec; box-shadow: 0 6px 0 #abb5c4, 0 12px 20px rgba(20, 48, 92, .14); }
+@media (hover: hover) {
+  .button--daily.is-complete:hover:not(:disabled) > span { display: none; }
+  .button--daily.is-complete:hover:not(:disabled)::after { content: attr(data-share-label); }
+}
 
 .button--quiet {
   min-height: 42px;
