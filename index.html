@@ -65,41 +65,25 @@
               </div>
               <p data-i18n="home.demoNote">Twenty quick sums. Your timer starts at GO.</p>
             </section>
-            <article class="hero-card daily-card" aria-label="Daily games" data-i18n-aria-label="aria.dailyGames">
-              <p class="mode-panel__label" data-i18n="home.dailyGamesTitle">Daily challenge</p>
-              <div class="daily-actions">
-                <div class="daily-action">
-                  <button class="button button--primary button--daily button--easy" id="start-button" disabled>
-                    <span data-i18n="home.loading">Loading the pen…</span>
-                  </button>
-                </div>
-                <div class="daily-action">
-                  <button class="button button--primary button--daily" id="daily-normal-button" type="button" disabled>
-                    <span data-i18n="home.loading">Loading the pen…</span>
-                  </button>
-                </div>
-              </div>
-            </article>
           </div>
 
-          <aside class="hero-card mode-card" aria-label="Training games" data-i18n-aria-label="aria.trainingGames">
-            <p class="mode-panel__label" data-i18n="home.trainingChoices">Practice anytime</p>
-            <button class="mode-option" type="button" data-game-mode="training-small">
-              <span data-i18n="mode.trainingSmall">Small + and −</span>
-              <small data-i18n="mode.trainingSmallDetail">Numbers up to 10</small>
-            </button>
-            <button class="mode-option" type="button" data-game-mode="training-large">
-              <span data-i18n="mode.trainingLarge">Large + and −</span>
-              <small data-i18n="mode.trainingLargeDetail">Numbers up to 99</small>
-            </button>
-            <button class="mode-option" type="button" data-game-mode="training-multiply">
-              <span data-i18n="mode.trainingMultiply">Multiplication</span>
-              <small data-i18n="mode.trainingMultiplyDetail">Times tables up to 10 × 10</small>
-            </button>
-            <button class="mode-option" type="button" data-game-mode="training-mixed">
-              <span data-i18n="mode.trainingMixed">Mixed practice</span>
-              <small data-i18n="mode.trainingMixedDetail">Small × plus all addition and subtraction</small>
-            </button>
+          <aside class="hero-card daily-card daily-card--featured" aria-label="Daily games" data-i18n-aria-label="aria.dailyGames">
+            <p class="mode-panel__label" data-i18n="home.dailyGamesTitle">Daily challenge</p>
+            <h2 data-i18n="home.dailyHeading">Pick today’s round.</h2>
+            <p class="daily-card__note" data-i18n="home.dailyNote">Daily rounds are shared and can be completed once per device.</p>
+            <div class="daily-actions">
+              <div class="daily-action">
+                <button class="button button--primary button--daily button--easy" id="start-button" disabled>
+                  <span data-i18n="home.loading">Loading the pen…</span>
+                </button>
+              </div>
+              <div class="daily-action">
+                <button class="button button--primary button--daily" id="daily-normal-button" type="button" disabled>
+                  <span data-i18n="home.loading">Loading the pen…</span>
+                </button>
+              </div>
+            </div>
+            <button class="button button--quiet button--training-launch" id="training-button" type="button" data-i18n="home.trainingButton">Train anytime</button>
           </aside>
         </section>
 
@@ -228,6 +212,20 @@
         <div class="share-modal__actions">
           <button class="button button--primary" id="share-copy-button" type="button" data-i18n="share.copy">Copy text</button>
           <button class="button button--quiet button--share" id="share-native-button" type="button" data-i18n="share.send">Share…</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="share-modal training-modal" id="training-modal" aria-labelledby="training-modal-title">
+      <div class="share-modal__card training-modal__card">
+        <button class="share-modal__close" id="training-modal-close" type="button" aria-label="Close" data-i18n-aria-label="share.close">×</button>
+        <p class="eyebrow" data-i18n="home.trainingChoices">Practice anytime</p>
+        <h2 id="training-modal-title" data-i18n="home.trainingHeading">Choose a skill.</h2>
+        <div class="training-options" aria-label="Training games" data-i18n-aria-label="aria.trainingGames">
+          <button class="mode-option" type="button" data-game-mode="training-small"><span data-i18n="mode.trainingSmall">Small + and −</span><small data-i18n="mode.trainingSmallDetail">Numbers up to 10</small></button>
+          <button class="mode-option" type="button" data-game-mode="training-large"><span data-i18n="mode.trainingLarge">Large + and −</span><small data-i18n="mode.trainingLargeDetail">Numbers up to 99</small></button>
+          <button class="mode-option" type="button" data-game-mode="training-multiply"><span data-i18n="mode.trainingMultiply">Multiplication</span><small data-i18n="mode.trainingMultiplyDetail">Times tables up to 10 × 10</small></button>
+          <button class="mode-option" type="button" data-game-mode="training-mixed"><span data-i18n="mode.trainingMixed">Mixed practice</span><small data-i18n="mode.trainingMixedDetail">Small × plus all addition and subtraction</small></button>
         </div>
       </div>
     </dialog>

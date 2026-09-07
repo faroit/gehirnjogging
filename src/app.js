@@ -23,6 +23,7 @@ const elements = Object.fromEntries([
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
   "share-modal", "share-modal-close", "share-modal-score", "share-modal-text", "share-copy-button", "share-native-button",
   "onboarding-modal", "onboarding-training-button", "onboarding-skip-button", "onboarding-practice-note", "settings-button", "settings-modal", "settings-modal-close",
+  "training-button", "training-modal", "training-modal-close",
   "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
 let locale = initialLocale();
@@ -146,6 +147,7 @@ function updateHomeModes() {
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
     button.disabled = !ready;
   });
+  elements["training-button"].disabled = !ready;
 }
 
 function readBest() {
@@ -678,7 +680,10 @@ function bindUi() {
   elements["again-button"].addEventListener("click", startGame);
   elements["daily-normal-button"].addEventListener("click", () => handleDailyAction(GAME_MODES.DAILY_NORMAL));
   document.querySelectorAll("[data-game-mode]").forEach((button) => {
-    button.addEventListener("click", () => startGame(button.dataset.gameMode));
+    button.addEventListener("click", () => {
+      if (elements["training-modal"].open) elements["training-modal"].close();
+      startGame(button.dataset.gameMode);
+    });
   });
   elements["restart-button"].addEventListener("click", restartGame);
   elements["quit-button"].addEventListener("click", quitGame);
@@ -703,6 +708,13 @@ function bindUi() {
   elements["settings-modal-close"].addEventListener("click", closeSettingsModal);
   elements["settings-modal"].addEventListener("click", (event) => {
     if (event.target === elements["settings-modal"]) closeSettingsModal();
+  });
+  elements["training-button"].addEventListener("click", () => {
+    if (!elements["training-modal"].open) elements["training-modal"].showModal();
+  });
+  elements["training-modal-close"].addEventListener("click", () => elements["training-modal"].close());
+  elements["training-modal"].addEventListener("click", (event) => {
+    if (event.target === elements["training-modal"]) elements["training-modal"].close();
   });
   elements["home-button"].addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "auto" });
