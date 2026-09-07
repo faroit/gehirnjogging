@@ -32,7 +32,7 @@ html {
     radial-gradient(circle at 7% 8%, rgba(255, 216, 77, .72), transparent 20rem),
     radial-gradient(circle at 94% 17%, rgba(255, 92, 122, .28), transparent 24rem),
     radial-gradient(circle at 88% 92%, rgba(101, 221, 180, .62), transparent 28rem),
-    #eef7ff;
+    #afeedb;
 }
 
 body {
@@ -45,11 +45,14 @@ body {
   color: var(--ink);
   /* Safari samples the body canvas behind its translucent browser controls. Keep
      the full artwork here as well as on html, rather than exposing a flat root. */
+  /* iOS Safari's Liquid Glass samples the body's background-color rather than
+     its gradient layers. This mint base is the page's lower canvas, so the
+     toolbar can remain glassy instead of falling back to blue-white. */
   background:
     radial-gradient(circle at 7% 8%, rgba(255, 216, 77, .72), transparent 20rem),
     radial-gradient(circle at 94% 17%, rgba(255, 92, 122, .28), transparent 24rem),
     radial-gradient(circle at 88% 92%, rgba(101, 221, 180, .62), transparent 28rem),
-    #eef7ff;
+    #afeedb;
   background-attachment: fixed;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
