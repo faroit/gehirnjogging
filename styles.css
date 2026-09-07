@@ -255,10 +255,6 @@ main {
 .screen--home::-webkit-scrollbar { width: 8px; }
 .screen--home::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: rgba(20, 48, 92, .32); background-clip: padding-box; }
 
-.screen--settings { display: grid; place-items: center; padding: 30px 0; overflow: auto; }
-.settings-card { width: min(100%, 680px); padding: clamp(30px, 6vw, 62px); }
-.settings-card h1 { margin: 0; font-size: clamp(48px, 7vw, 82px); line-height: .9; }
-.settings-card__lede { margin: 28px 0 16px; color: var(--ink-soft); font-size: 20px; font-weight: 700; }
 .input-preference { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0 28px; }
 .input-preference__option {
   display: grid;
@@ -1087,6 +1083,8 @@ footer {
   line-height: 1;
 }
 .share-modal__close:hover { color: var(--coral-dark); border-color: var(--coral-dark); }
+.settings-modal__lede { margin: 6px 0 16px; color: var(--ink-soft); font-size: 18px; font-weight: 700; }
+.settings-modal .input-preference { margin-bottom: 0; }
 
 .onboarding-modal {
   width: min(calc(100vw - 32px), 640px);
@@ -1153,8 +1151,6 @@ footer {
   .lede { margin: 22px 0 18px; font-size: 17px; }
   .hero-card { padding: 22px 20px; }
   .daily-card { margin-top: 20px; }
-  .screen--settings { padding: 18px 0; }
-  .settings-card { padding: 28px 22px; }
   .input-preference { grid-template-columns: 1fr; }
   .input-preference__option { min-height: 106px; grid-template-columns: 42px 1fr; align-items: center; }
   .input-preference__option > span { grid-row: 1 / span 2; margin: 0; }
@@ -1173,8 +1169,6 @@ footer {
   .number-pad { margin-block: 10px; }
   .number-pad__keys { gap: 7px; }
   .number-pad__keys button { border-radius: 13px 16px 12px 15px; }
-  #keyboard-button { font-size: 0; gap: 0; }
-  #keyboard-button svg { width: 18px; }
   .score-block__main strong { font-size: clamp(68px, 20vw, 92px); }
   .score-breakdown { grid-template-columns: 1fr; }
   .screen--results { padding: 10px 0 max(96px, env(safe-area-inset-bottom)); }

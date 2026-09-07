@@ -14,15 +14,15 @@ import { applyDocumentTranslations, formatDecimal, initialLocale, normaliseLocal
 import { InkRecognizer } from "./ink-recognizer.js";
 
 const elements = Object.fromEntries([
-  "home-screen", "game-screen", "results-screen", "settings-screen", "start-button", "again-button", "home-button", "share-button", "restart-button", "quit-button",
+  "home-screen", "game-screen", "results-screen", "start-button", "again-button", "home-button", "share-button", "restart-button", "quit-button",
   "daily-normal-button", "daily-date",
   "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
-  "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst", "results-fireworks",
+  "erase-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst", "results-fireworks",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
   "share-modal", "share-modal-close", "share-modal-score", "share-modal-text", "share-copy-button", "share-native-button",
-  "onboarding-modal", "onboarding-training-button", "onboarding-skip-button", "onboarding-practice-note", "settings-button", "settings-back-button",
+  "onboarding-modal", "onboarding-training-button", "onboarding-skip-button", "onboarding-practice-note", "settings-button", "settings-modal", "settings-modal-close",
   "language-select", "fullscreen-button",
 ].map((id) => [id, document.getElementById(id)]));
 let locale = initialLocale();
@@ -161,7 +161,7 @@ function formatSeconds(seconds, precision = 1) {
 }
 
 function showScreen(id) {
-  const screens = [elements["home-screen"], elements["game-screen"], elements["results-screen"], elements["settings-screen"]];
+  const screens = [elements["home-screen"], elements["game-screen"], elements["results-screen"]];
   for (const screen of screens) {
     screen.classList.remove("is-active");
     if (screen.id !== id) setTimeout(() => { if (!screen.classList.contains("is-active")) screen.hidden = true; }, 230);
@@ -169,7 +169,6 @@ function showScreen(id) {
   const next = document.getElementById(id);
   next.hidden = false;
   if (id === "results-screen") next.scrollTop = 0;
-  elements["settings-button"].hidden = id === "game-screen";
   requestAnimationFrame(() => requestAnimationFrame(() => {
     next.classList.add("is-active");
   }));
@@ -224,10 +223,6 @@ function submitKeypadAnswer() {
   submitAnswer(value);
 }
 
-function updateInputModeCopy() {
-  elements["keyboard-button"].querySelector("span").textContent = t(keypadMode ? "game.useHandwriting" : "game.useKeypad");
-}
-
 function updateInputPreferenceUi() {
   document.querySelectorAll("[data-input-preference]").forEach((button) => {
     const selected = button.dataset.inputPreference === inputPreference;
@@ -250,11 +245,9 @@ function setKeypadMode(enabled) {
   elements["answer-entry"].hidden = keypadMode;
   elements["keyboard-entry"].hidden = !keypadMode;
   elements["erase-button"].hidden = keypadMode;
-  elements["keyboard-button"].setAttribute("aria-expanded", String(keypadMode));
   recognizer?.clear();
   recognizer?.setEnabled(!keypadMode && acceptingAnswer);
   renderKeypad();
-  updateInputModeCopy();
 }
 
 function updateTimer() {
@@ -475,7 +468,6 @@ function refreshLocaleCopy() {
   setRecognitionState(recognitionSnapshot.state, recognitionSnapshot.messageKey, recognitionSnapshot.parameters);
   setPrediction(predictionSnapshot.digits, { complete: predictionSnapshot.complete });
   renderKeypad();
-  updateInputModeCopy();
   updateInputPreferenceUi();
   updateFullscreenButton();
   recognizer?.refreshLocale();
@@ -552,6 +544,10 @@ function closeShareModal() {
 
 function closeOnboarding() {
   if (elements["onboarding-modal"].open) elements["onboarding-modal"].close();
+}
+
+function closeSettingsModal() {
+  if (elements["settings-modal"].open) elements["settings-modal"].close();
 }
 
 function finishOnboarding({ training = false } = {}) {
@@ -652,15 +648,20 @@ function bindUi() {
     if (event.target === elements["share-modal"]) closeShareModal();
   });
   document.querySelectorAll("[data-input-preference]").forEach((button) => {
-    button.addEventListener("click", () => setInputPreference(button.dataset.inputPreference));
+    button.addEventListener("click", () => {
+      setInputPreference(button.dataset.inputPreference);
+      if (button.closest("#settings-modal")) closeSettingsModal();
+    });
   });
   elements["onboarding-training-button"].addEventListener("click", () => finishOnboarding({ training: true }));
   elements["onboarding-skip-button"].addEventListener("click", () => finishOnboarding());
   elements["settings-button"].addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "auto" });
-    showScreen("settings-screen");
+    if (!elements["settings-modal"].open) elements["settings-modal"].showModal();
   });
-  elements["settings-back-button"].addEventListener("click", () => showScreen("home-screen"));
+  elements["settings-modal-close"].addEventListener("click", closeSettingsModal);
+  elements["settings-modal"].addEventListener("click", (event) => {
+    if (event.target === elements["settings-modal"]) closeSettingsModal();
+  });
   elements["home-button"].addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "auto" });
     showScreen("home-screen");
@@ -671,7 +672,6 @@ function bindUi() {
   });
   elements["erase-button"].addEventListener("click", () => recognizer?.clear());
   elements["submit-answer-button"].addEventListener("click", () => recognizer?.submit());
-  elements["keyboard-button"].addEventListener("click", () => setInputPreference(keypadMode ? "handwriting" : "keypad"));
   elements["keyboard-entry"].querySelectorAll("[data-digit]").forEach((button) => {
     button.addEventListener("click", () => addKeypadDigit(button.dataset.digit));
   });
@@ -735,7 +735,6 @@ async function initialise() {
     elements["erase-button"].disabled = true;
     elements["submit-answer-button"].disabled = true;
     setKeypadMode(true);
-    elements["keyboard-button"].hidden = true;
     setRecognitionState("unsure", "model.error");
     refreshLocaleCopy();
     showToast(t("model.toastError"));

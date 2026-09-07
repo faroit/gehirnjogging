@@ -156,10 +156,6 @@
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 15 8-9 8 7-6 7H9l-5-5Z" /><path d="m13 19-6-6" /></svg>
                   <span data-i18n="game.erase">Erase</span>
                 </button>
-                <button class="button button--quiet" id="keyboard-button" type="button" aria-controls="keyboard-entry" aria-expanded="false">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M7 10h.01M11 10h.01M15 10h.01M18 10h.01M8 14h8" /></svg>
-                  <span data-i18n="game.useKeypad">Use keypad</span>
-                </button>
               </div>
             </article>
           </div>
@@ -203,22 +199,6 @@
           </aside>
         </section>
 
-        <section class="screen screen--settings" id="settings-screen" aria-labelledby="settings-title" hidden>
-          <article class="settings-card paper">
-            <p class="eyebrow" data-i18n="settings.eyebrow">Your settings</p>
-            <h1 id="settings-title" data-i18n="settings.title">Play your way.</h1>
-            <p class="settings-card__lede" data-i18n="settings.inputPrompt">How would you like to answer?</p>
-            <div class="input-preference" aria-label="Choose your input preference" data-i18n-aria-label="settings.inputPrompt">
-              <button class="input-preference__option" type="button" data-input-preference="handwriting">
-                <span aria-hidden="true">✎</span><b data-i18n="settings.handwriting">Handwriting</b><small data-i18n="settings.handwritingDetail">Write answers on screen</small>
-              </button>
-              <button class="input-preference__option" type="button" data-input-preference="keypad">
-                <span aria-hidden="true">⌨</span><b data-i18n="settings.keypad">Numpad / keyboard</b><small data-i18n="settings.keypadDetail">Tap the keypad or type numbers</small>
-              </button>
-            </div>
-            <button class="button button--quiet" id="settings-back-button" type="button" data-i18n="settings.back">Back home</button>
-          </article>
-        </section>
       </main>
 
     </div>
@@ -254,6 +234,23 @@
         <div class="onboarding-modal__actions">
           <button class="button button--primary" id="onboarding-training-button" type="button" data-i18n="onboarding.training">Try practice first</button>
           <button class="button button--quiet" id="onboarding-skip-button" type="button" data-i18n="onboarding.skip">Continue</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="share-modal settings-modal" id="settings-modal" aria-labelledby="settings-title">
+      <div class="share-modal__card settings-modal__card">
+        <button class="share-modal__close" id="settings-modal-close" type="button" aria-label="Close" data-i18n-aria-label="share.close">×</button>
+        <p class="eyebrow" data-i18n="settings.eyebrow">Your settings</p>
+        <h2 id="settings-title" data-i18n="settings.title">Play your way.</h2>
+        <p class="settings-modal__lede" data-i18n="settings.inputPrompt">How would you like to answer?</p>
+        <div class="input-preference" aria-label="Choose your input preference" data-i18n-aria-label="settings.inputPrompt">
+          <button class="input-preference__option" type="button" data-input-preference="handwriting">
+            <span aria-hidden="true">✎</span><b data-i18n="settings.handwriting">Handwriting</b><small data-i18n="settings.handwritingDetail">Write answers on screen</small>
+          </button>
+          <button class="input-preference__option" type="button" data-input-preference="keypad">
+            <span aria-hidden="true">⌨</span><b data-i18n="settings.keypad">Numpad / keyboard</b><small data-i18n="settings.keypadDetail">Tap the keypad or type numbers</small>
+          </button>
         </div>
       </div>
     </dialog>
