@@ -604,13 +604,13 @@ main {
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--paper);
-  background: radial-gradient(circle at 50% 42%, rgba(255, 216, 77, .96), rgba(77, 112, 255, .94));
+  color: var(--blue);
+  background: var(--paper);
   font-family: var(--font-display);
   font-size: clamp(110px, 20vw, 250px);
   font-weight: 800;
   line-height: 1;
-  text-shadow: 5px 6px 0 rgba(20, 48, 92, .26);
+  text-shadow: 3px 4px 0 rgba(20, 48, 92, .14);
 }
 
 .paper,
