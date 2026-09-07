@@ -19,7 +19,7 @@ const elements = Object.fromEntries([
   "progress-text", "timer-text", "equation", "feedback-mark",
   "answer-flash",
   "progress-bar", "recognition-state", "ink-canvas", "canvas-guide", "prediction-preview", "answer-entry",
-  "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst",
+  "erase-button", "keyboard-button", "submit-answer-button", "keyboard-entry", "number-input", "keypad-backspace", "keypad-submit", "result-rank", "result-burst", "results-fireworks",
   "final-score-value", "raw-time", "mistake-count", "personal-line", "accuracy-text", "run-list", "toast",
   "share-modal", "share-modal-close", "share-modal-score", "share-modal-text", "share-copy-button", "share-native-button",
   "language-select", "fullscreen-button",
@@ -43,6 +43,7 @@ let modelState = "loading";
 let modelAccuracy = 0;
 let latestSummary = null;
 let shareSummaryActive = null;
+let fireworksTimer = 0;
 let recognitionSnapshot = { state: "ready", messageKey: "recognition.writeLarge", parameters: {} };
 let predictionSnapshot = { digits: null, complete: false };
 let keypadMode = false;
@@ -380,6 +381,37 @@ function finishGame() {
   updateHomeModes();
   window.scrollTo({ top: 0, behavior: "auto" });
   showScreen("results-screen");
+  clearTimeout(fireworksTimer);
+  fireworksTimer = setTimeout(launchResultsFireworks, 280);
+}
+
+function launchResultsFireworks() {
+  const layer = elements["results-fireworks"];
+  layer.replaceChildren();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const symbols = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "−", "×", "="];
+  const bursts = [[24, 31], [70, 24], [49, 61]];
+  const fragment = document.createDocumentFragment();
+  for (let index = 0; index < 42; index += 1) {
+    const [x, y] = bursts[index % bursts.length];
+    const angle = (Math.PI * 2 * index) / 14 + (Math.random() - .5) * .26;
+    const distance = 80 + Math.random() * 150;
+    const particle = document.createElement("span");
+    particle.className = "results-fireworks__particle";
+    particle.textContent = symbols[index % symbols.length];
+    particle.style.setProperty("--x", `${x + (Math.random() - .5) * 6}%`);
+    particle.style.setProperty("--y", `${y + (Math.random() - .5) * 6}%`);
+    particle.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+    particle.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+    particle.style.setProperty("--turn", `${Math.round((Math.random() - .5) * 180)}deg`);
+    particle.style.setProperty("--delay", `${(index % 3) * 100 + Math.random() * 160}ms`);
+    particle.style.setProperty("--duration", `${900 + Math.random() * 450}ms`);
+    particle.style.setProperty("--size", `${20 + Math.random() * 19}px`);
+    fragment.append(particle);
+  }
+  layer.append(fragment);
+  fireworksTimer = setTimeout(() => layer.replaceChildren(), 1900);
 }
 
 function renderResults({ rawSeconds, finalSeconds, previousBest, isBest, pace, mistakes: mistakeTotal }) {
