@@ -44,6 +44,7 @@ let latestSummary = null;
 let shareSummaryActive = null;
 let fireworksTimer = 0;
 let countdownTimer = 0;
+let startSequence = 0;
 let recognitionSnapshot = { state: "ready", messageKey: "recognition.writeLarge", parameters: {} };
 let predictionSnapshot = { digits: null, complete: false };
 let keypadMode = false;
@@ -323,6 +324,7 @@ function startGame(mode = activeMode) {
     return;
   }
   window.scrollTo({ top: 0, behavior: "auto" });
+  const sequence = ++startSequence;
   cancelAnimationFrame(timerFrame);
   clearCountdown();
   activeMode = mode;
@@ -344,6 +346,7 @@ function startGame(mode = activeMode) {
   setKeypadMode(!recognizer || inputPreference === "keypad");
   showScreen("game-screen");
   setTimeout(() => {
+    if (sequence !== startSequence || !elements["game-screen"].classList.contains("is-active")) return;
     window.scrollTo({ top: 0, behavior: "auto" });
     recognizer?.resize();
     startCountdown();
@@ -354,6 +357,7 @@ function quitGame() {
   const isActiveRun = runStartedAt && problemIndex < TOTAL_PROBLEMS;
   if (isActiveRun && !confirm(t("confirm.leave"))) return;
   cancelAnimationFrame(timerFrame);
+  startSequence += 1;
   clearCountdown();
   runStartedAt = 0;
   acceptingAnswer = false;
