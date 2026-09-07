@@ -278,23 +278,14 @@ function startCountdown() {
   const advance = () => {
     countdown.hidden = false;
     countdown.textContent = steps[step];
-    countdown.animate(
-      [
-        { opacity: 0, transform: "scale(.55) rotate(-5deg)" },
-        { opacity: 1, transform: "scale(1.06) rotate(0)", offset: .22 },
-        { opacity: 1, transform: "scale(1)", offset: .72 },
-        { opacity: 0, transform: "scale(1.18) rotate(3deg)" },
-      ],
-      { duration: step === steps.length - 1 ? 620 : 700, easing: "cubic-bezier(.2,.8,.25,1)" },
-    );
     step += 1;
-    if (step < steps.length) countdownTimer = setTimeout(advance, 700);
+    if (step < steps.length) countdownTimer = setTimeout(advance, 800);
     else countdownTimer = setTimeout(() => {
       countdown.hidden = true;
       renderProblem();
       runStartedAt = performance.now();
       updateTimer();
-    }, 620);
+    }, 600);
   };
   advance();
 }

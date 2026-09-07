@@ -616,13 +616,13 @@ main {
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--blue);
-  background: var(--paper);
+  color: var(--paper);
+  background: var(--blue);
   font-family: var(--font-display);
   font-size: clamp(110px, 20vw, 250px);
   font-weight: 800;
   line-height: 1;
-  text-shadow: 3px 4px 0 rgba(20, 48, 92, .14);
+  text-shadow: 3px 4px 0 rgba(20, 48, 92, .32);
 }
 
 .paper,
